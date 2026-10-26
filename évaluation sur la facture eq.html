@@ -1,0 +1,2201 @@
+<!DOCTYPE html>
+<html lang="fr-BE">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Évaluation formative — La facture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   PALETTE — Annexe A du cahier des charges (à ne pas modifier)
+   ============================================================ */
+:root {
+  --navy: #0f172a;
+  --navy-light: #1e293b;
+  --slate: #334155;
+  --slate-mid: #64748b;
+  --slate-light: #94a3b8;
+  --blue: #2563eb;
+  --blue-light: #3b82f6;
+  --blue-pale: #dbeafe;
+  --blue-bg: #eff6ff;
+  --green: #16a34a;
+  --green-pale: #dcfce7;
+  --red: #dc2626;
+  --red-pale: #fee2e2;
+  --orange: #ea580c;
+  --orange-pale: #fff7ed;
+  --white: #ffffff;
+  --gray-50: #f8fafc;
+  --gray-100: #f1f5f9;
+  --gray-200: #e2e8f0;
+  --gray-300: #cbd5e1;
+  --font-body: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+  --radius: 8px;
+  --radius-lg: 12px;
+  --header-h: 60px;
+  --cell-bg: #fffbea;
+  --cell-border: #e5c76b;
+  color-scheme: light;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-padding-top: calc(var(--header-h) + 16px); }
+body {
+  margin: 0;
+  background: var(--gray-50);
+  color: var(--slate);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.55;
+}
+h1, h2, h3 { color: var(--navy); margin: 0; line-height: 1.2; }
+strong { color: var(--navy); font-weight: 700; }
+button { font-family: inherit; }
+:focus-visible { outline: 3px solid var(--blue-light); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+/* ---------- Écrans : affichage / masquage CSS (section 5) ---------- */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ---------- Boutons ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 46px; padding: 11px 22px;
+  border-radius: var(--radius); border: 2px solid transparent;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  transition: background .12s ease, border-color .12s ease, color .12s ease;
+}
+.btn-primary { background: var(--blue); color: var(--white); }
+.btn-primary:hover:not(:disabled) { background: var(--navy-light); }
+.btn-primary:disabled { background: var(--gray-300); color: var(--white); cursor: not-allowed; }
+.btn-ghost { background: var(--white); color: var(--slate); border-color: var(--gray-300); }
+.btn-ghost:hover:not(:disabled) { border-color: var(--slate-mid); color: var(--navy); }
+.btn-ghost.confirm { border-color: var(--orange); color: var(--navy); background: var(--orange-pale); }
+.btn-lg { min-height: 52px; padding: 13px 28px; font-size: 16px; }
+
+/* ============================================================
+   EN-TÊTE STICKY (tous les écrans sauf login)
+   ============================================================ */
+.app-header {
+  position: sticky; top: 0; z-index: 50;
+  background: var(--white); border-bottom: 1px solid var(--gray-200);
+}
+.hd-inner {
+  max-width: 1240px; margin: 0 auto; padding: 10px 24px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+}
+.hd-title { display: flex; flex-direction: column; min-width: 0; }
+.hd-app { font-size: 15px; font-weight: 800; color: var(--navy); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hd-step { font-size: 13px; color: var(--slate-mid); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hd-right { display: flex; align-items: center; gap: 16px; flex: none; }
+.hd-email { font-size: 13px; color: var(--slate-mid); max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hd-timer {
+  font-family: var(--font-mono); font-size: 15px; font-weight: 500; color: var(--navy);
+  background: var(--gray-100); border-radius: 6px; padding: 4px 10px;
+  font-variant-numeric: tabular-nums;
+}
+.progress { height: 4px; background: var(--gray-200); }
+.progress-fill { height: 100%; width: 0; background: var(--blue); transition: width .35s ease; }
+
+/* ============================================================
+   ÉCRAN 1 — LOGIN
+   ============================================================ */
+.login {
+  max-width: 1160px; margin: 0 auto; padding: 48px 24px 56px;
+  display: grid; gap: 28px 56px;
+  grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+  grid-template-areas: "intro art" "route rules" "form rules";
+  align-items: start;
+}
+.login-intro { grid-area: intro; }
+.login-art { grid-area: art; }
+.login-route { grid-area: route; }
+.login-rules { grid-area: rules; }
+.login-form-wrap { grid-area: form; }
+
+.login-title { font-size: 44px; font-weight: 800; letter-spacing: -0.025em; line-height: 1.05; }
+.login-sub { margin: 10px 0 0; font-size: 16px; font-weight: 600; color: var(--blue); }
+.login-lead { margin: 18px 0 0; font-size: 17px; line-height: 1.6; color: var(--slate); max-width: 34em; }
+.login-art {
+  background: var(--blue-bg); border-radius: var(--radius-lg);
+  display: flex; align-items: center; justify-content: center;
+  padding: 14px 18px;
+}
+.login-art svg { width: auto; max-width: 100%; height: 214px; display: block; }
+
+/* Parcours — une vraie séquence, d’où la numérotation */
+.route { list-style: none; margin: 0; padding: 0; position: relative; }
+.route li { position: relative; display: flex; gap: 14px; padding: 0 0 18px; }
+.route li:last-child { padding-bottom: 0; }
+.route li:not(:last-child)::before {
+  content: ""; position: absolute; left: 14px; top: 30px; bottom: 2px;
+  width: 2px; background: var(--gray-200);
+}
+.route-n {
+  flex: none; width: 30px; height: 30px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 2px solid var(--navy); color: var(--navy); background: var(--white);
+  font-size: 13px; font-weight: 800;
+}
+.route li > div { display: flex; flex-direction: column; padding-top: 3px; }
+.route li strong { font-size: 15px; }
+.route li span.route-d { font-size: 14px; color: var(--slate-mid); }
+.route li.done .route-n { background: var(--green); border-color: var(--green); color: var(--white); }
+.route li.current .route-n { background: var(--blue); border-color: var(--blue); color: var(--white); }
+.route li.done:not(:last-child)::before { background: var(--green); }
+.route-duration { margin: 18px 0 0; font-size: 14px; color: var(--slate-mid); }
+
+.login-rules {
+  background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius-lg);
+  padding: 22px 24px;
+}
+.login-rules h2 { font-size: 16px; font-weight: 800; margin-bottom: 10px; }
+.login-rules ul { margin: 0; padding: 0; list-style: none; }
+.login-rules li { position: relative; padding: 6px 0 6px 18px; font-size: 14.5px; line-height: 1.5; border-top: 1px solid var(--gray-100); }
+.login-rules li:first-child { border-top: none; }
+.login-rules li::before {
+  content: ""; position: absolute; left: 2px; top: 15px;
+  width: 6px; height: 6px; border-radius: 50%; background: var(--blue-light);
+}
+
+.field-label { display: block; font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
+.login-form { display: flex; gap: 10px; flex-wrap: wrap; }
+.login-form input {
+  flex: 1 1 260px; min-width: 0; min-height: 50px;
+  padding: 12px 14px; border: 2px solid var(--gray-200); border-radius: var(--radius);
+  font-family: var(--font-body); font-size: 16px; color: var(--navy); background: var(--white);
+  outline: none; transition: border-color .12s ease, box-shadow .12s ease;
+}
+.login-form input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-pale); }
+.login-error:empty { display: none; }
+.login-error {
+  margin: 12px 0 0; padding: 10px 14px; border-radius: var(--radius);
+  background: var(--red-pale); color: var(--navy); font-size: 14px; border-left: 4px solid var(--red);
+}
+.login-busy { margin: 12px 0 0; font-size: 14px; color: var(--slate-mid); }
+
+/* ============================================================
+   CONTENEURS
+   ============================================================ */
+.wrap-narrow { max-width: 780px; margin: 0 auto; padding: 32px 20px 56px; }
+.wrap-mid { max-width: 880px; margin: 0 auto; padding: 36px 20px 64px; }
+.wrap-wide { max-width: 1240px; margin: 0 auto; padding: 24px 24px 56px; }
+
+.center-card {
+  max-width: 620px; margin: 64px auto; padding: 36px;
+  background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius-lg);
+}
+.center-card h1 { font-size: 28px; font-weight: 800; margin-bottom: 12px; }
+.icon-badge { width: 56px; height: 56px; border-radius: 50%; background: var(--blue-bg);
+              display: flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 16px; }
+.center-card p { margin: 10px 0 0; }
+
+/* ============================================================
+   CARTE DE QUESTION (quiz et exercices)
+   ============================================================ */
+.question-card {
+  background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius-lg);
+  padding: 26px 28px 24px; box-shadow: var(--shadow-sm);
+}
+.q-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 14px; }
+.q-count { font-size: 14px; font-weight: 700; color: var(--slate-mid); margin-right: auto; }
+.chip {
+  font-size: 12.5px; font-weight: 600; color: var(--slate);
+  background: var(--gray-100); border-radius: 999px; padding: 3px 10px;
+}
+.q-context {
+  margin: 0 0 16px; padding: 12px 16px; background: var(--gray-50);
+  border-left: 3px solid var(--blue-light); border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: 15px; line-height: 1.6; color: var(--slate);
+}
+.q-text { font-size: 20px; font-weight: 700; line-height: 1.4; margin: 0 0 6px; }
+.q-sub { margin: 0 0 16px; font-size: 14px; color: var(--slate-mid); }
+.q-sub:empty { display: none; }
+
+/* QCM */
+.options { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+.qcm-option {
+  display: flex; align-items: flex-start; gap: 12px; width: 100%; text-align: left;
+  padding: 13px 16px; background: var(--white); color: var(--navy);
+  border: 2px solid var(--gray-200); border-radius: var(--radius);
+  font-size: 15.5px; line-height: 1.5; cursor: pointer;
+  transition: border-color .12s ease, background .12s ease;
+}
+.qcm-option:hover:not(.locked) { border-color: var(--blue-light); }
+.opt-mark {
+  flex: none; width: 20px; height: 20px; margin-top: 2px; border-radius: 50%;
+  border: 2px solid var(--gray-300); background: var(--white); position: relative;
+}
+.qcm-option.selected { border-color: var(--blue); background: var(--blue-bg); }
+.qcm-option.selected .opt-mark { border-color: var(--blue); }
+.qcm-option.selected .opt-mark::after {
+  content: ""; position: absolute; inset: 3px; border-radius: 50%; background: var(--blue);
+}
+.qcm-option.locked { cursor: default; }
+.qcm-option.locked:not(.selected) { opacity: .55; }
+.qcm-option.is-correct { border-color: var(--green); background: var(--green-pale); }
+.qcm-option.is-correct .opt-mark { border-color: var(--green); }
+.qcm-option.is-correct .opt-mark::after { background: var(--green); }
+.qcm-option.is-wrong { border-color: var(--red); background: var(--red-pale); }
+.qcm-option.is-wrong .opt-mark { border-color: var(--red); }
+.qcm-option.is-wrong .opt-mark::after { background: var(--red); }
+
+/* Sélection multiple */
+.multi-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+@media (min-width: 1041px) { .ex-layout.has-docs .multi-list { grid-template-columns: 1fr; } }
+.multi-option {
+  display: flex; align-items: center; gap: 12px; text-align: left;
+  padding: 12px 14px; background: var(--white); color: var(--navy);
+  border: 2px solid var(--gray-200); border-radius: var(--radius);
+  font-size: 15px; line-height: 1.4; cursor: pointer;
+}
+.multi-option:hover:not(.locked) { border-color: var(--blue-light); }
+.multi-option .box {
+  flex: none; width: 20px; height: 20px; border-radius: 5px;
+  border: 2px solid var(--gray-300); background: var(--white);
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--white); font-size: 13px; font-weight: 800; line-height: 1;
+}
+.multi-option.selected { border-color: var(--blue); background: var(--blue-bg); }
+.multi-option.selected .box { background: var(--blue); border-color: var(--blue); }
+.multi-option.selected .box::after { content: "✓"; }
+.multi-option.locked { cursor: default; }
+
+/* Réserve d’étiquettes et étiquettes */
+.reserve {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start;
+  min-height: 58px; padding: 12px; margin-bottom: 16px;
+  background: var(--gray-50); border: 2px dashed var(--gray-200); border-radius: var(--radius);
+  transition: border-color .2s ease, background .2s ease;
+}
+.reserve.nudge { border-color: var(--blue-light); background: var(--blue-bg); }
+#exBody .reserve {
+  position: sticky; top: calc(var(--header-h) + 10px); z-index: 5;
+  box-shadow: 0 10px 18px -14px rgba(15,23,42,.45);
+}
+#exBody .bin { scroll-margin-top: 240px; }
+.reserve-empty { font-size: 13.5px; color: var(--slate-mid); font-style: italic; margin: auto 0; }
+.tag {
+  display: inline-block; text-align: left;
+  padding: 8px 11px; background: var(--white); color: var(--navy);
+  border: 1.5px solid var(--gray-300); border-radius: 6px;
+  font-size: 14px; font-weight: 600; line-height: 1.35; cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+.tag:hover { border-color: var(--blue-light); }
+.tag.picked { background: var(--blue); border-color: var(--blue); color: var(--white); box-shadow: 0 0 0 3px var(--blue-pale); }
+.tag.placed { background: var(--blue-bg); border-color: var(--blue-pale); box-shadow: none; }
+.locked .tag, .tag.locked { cursor: default; }
+
+/* Tri en colonnes — implémentation de référence 13.13 */
+.bins { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.bin { border: 2px solid var(--gray-200); border-radius: var(--radius); overflow: hidden;
+       display: flex; flex-direction: column; background: var(--white);
+       transition: border-color .12s ease, background .12s ease; }
+.bin.droppable { border-color: var(--blue-light); border-style: dashed; cursor: pointer; }
+.bin.droppable:hover { background: var(--blue-bg); }
+.bin-title { background: var(--gray-100); padding: 10px 12px; font-size: 13px;
+             font-weight: 800; color: var(--navy); text-align: center; }
+.bin-drop { padding: 10px; min-height: 92px; flex: 1 1 auto;
+            display: flex; flex-direction: column; gap: 7px; cursor: pointer; }
+.bin-empty { color: var(--slate-light); font-size: 13px; font-style: italic;
+             text-align: center; margin: auto 0; pointer-events: none; }
+.bin .tag { width: 100%; }
+
+/* Chasse aux erreurs — l’élève corrige au stylo rouge */
+.seg {
+  border-radius: 3px; padding: 1px 2px; margin: 0 -2px; cursor: pointer;
+  transition: background .12s ease;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+}
+.seg:hover:not(.locked) { background: var(--gray-100); }
+.seg.marked {
+  background: var(--red-pale);
+  text-decoration: underline; text-decoration-color: var(--red);
+  text-decoration-thickness: 2px; text-underline-offset: 3px;
+}
+.seg.locked { cursor: default; }
+
+.memo {
+  background: var(--blue-bg); border: 1px solid var(--blue-pale); border-radius: 4px;
+  padding: 20px 22px 16px; box-shadow: 0 10px 22px -16px rgba(15,23,42,.45);
+  transform: rotate(-0.4deg);
+}
+.memo-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap;
+             border-bottom: 2px solid var(--blue-pale); padding-bottom: 8px; margin-bottom: 8px; }
+.memo-title { font-weight: 800; color: var(--navy); font-size: 16px; }
+.memo-author { font-size: 13px; color: var(--slate-mid); }
+.memo-list { list-style: none; margin: 0; padding: 0; }
+.memo-list li { position: relative; padding: 7px 0 7px 18px; font-size: 15.5px; line-height: 1.55; color: var(--navy);
+                border-bottom: 1px dashed var(--blue-pale); }
+.memo-list li:last-child { border-bottom: none; }
+.memo-list li::before { content: "–"; position: absolute; left: 2px; top: 7px; color: var(--blue); font-weight: 700; }
+
+.rapport {
+  background: var(--white); border: 1px solid var(--gray-300); border-radius: 3px;
+  padding: 22px 26px; box-shadow: 0 12px 24px -16px rgba(15,23,42,.45);
+  font-size: 15.5px; line-height: 1.75; color: var(--navy);
+}
+.rapport-head { font-size: 13.5px; line-height: 1.6; color: var(--slate); border-bottom: 2px solid var(--navy); padding-bottom: 10px; margin-bottom: 12px; }
+.rapport-head b { display: inline-block; min-width: 58px; color: var(--navy); }
+.rapport p { margin: 0 0 10px; }
+.rapport-sign { margin-top: 6px; font-weight: 700; }
+
+/* Saisie numérique */
+.num-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.num-input {
+  width: 200px; max-width: 100%; min-height: 50px; padding: 10px 14px; text-align: right;
+  border: 2px solid var(--gray-200); border-radius: var(--radius); outline: none;
+  font-family: var(--font-mono); font-size: 18px; color: var(--navy); background: var(--white);
+  transition: border-color .12s ease, box-shadow .12s ease;
+}
+.num-input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-pale); }
+.num-input:disabled { background: var(--gray-100); color: var(--slate); }
+.num-unit { font-size: 18px; font-weight: 700; color: var(--navy); }
+.num-hint, .grid-hint { margin: 10px 0 0; font-size: 13.5px; color: var(--slate-mid); }
+
+/* Retour binaire */
+.feedback {
+  display: none; align-items: center; gap: 12px;
+  margin-top: 18px; padding: 12px 16px; border-radius: var(--radius);
+  font-size: 15px; font-weight: 600; color: var(--navy);
+}
+.feedback.show { display: flex; }
+.feedback .fb-icon {
+  flex: none; width: 26px; height: 26px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--white); font-size: 14px; font-weight: 800;
+}
+.feedback.ok { background: var(--green-pale); border-left: 4px solid var(--green); }
+.feedback.ok .fb-icon { background: var(--green); }
+.feedback.ko { background: var(--red-pale); border-left: 4px solid var(--red); }
+.feedback.ko .fb-icon { background: var(--red); }
+.feedback.retry { background: var(--orange-pale); border-left: 4px solid var(--orange); }
+.feedback.retry .fb-icon { background: var(--orange); }
+.feedback.skip { background: var(--gray-100); border-left: 4px solid var(--slate-light); }
+.feedback.skip .fb-icon { background: var(--slate-light); }
+
+.actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.try-info { margin-right: auto; font-size: 13.5px; color: var(--slate-mid); }
+
+/* ============================================================
+   ÉCRAN 5 — EXERCICES
+   ============================================================ */
+.ex-banner {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+  font-size: 15px; font-weight: 800; color: var(--navy);
+}
+.ex-banner::before { content: ""; width: 4px; height: 20px; border-radius: 2px; background: var(--blue); }
+.ex-layout { display: block; max-width: 820px; margin: 0 auto; }
+.ex-layout.grid-mode { max-width: 900px; }
+.ex-layout.has-docs {
+  max-width: none; display: grid; gap: 24px; align-items: start;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+}
+.ex-docs {
+  background: var(--gray-100); border-radius: var(--radius-lg); padding: 18px;
+  position: sticky; top: calc(var(--header-h) + 16px);
+  max-height: calc(100vh - var(--header-h) - 32px); overflow: auto;
+}
+
+/* ---------- Documents commerciaux : le papier est la vedette ---------- */
+.doc-label { margin: 0 0 7px; font-size: 13px; font-weight: 700; color: var(--slate); }
+.paper {
+  position: relative; background: var(--white); color: var(--navy);
+  border: 1px solid var(--gray-300); border-radius: 3px;
+  padding: 18px 20px 16px; font-size: 13px; line-height: 1.45;
+  box-shadow: 0 1px 2px rgba(15,23,42,.06), 0 12px 26px -16px rgba(15,23,42,.45);
+}
+.mono { font-family: var(--font-mono); font-size: .94em; letter-spacing: -0.01em; }
+.p-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; }
+.p-issuer-name { font-size: 15px; font-weight: 800; letter-spacing: .02em; }
+.p-legal { display: block; margin-top: 3px; font-family: var(--font-mono); font-size: 10.5px; color: var(--slate-mid); }
+.p-docbox { text-align: right; flex: none; }
+.p-docname { font-size: 15px; font-weight: 800; letter-spacing: .08em; margin-bottom: 4px; }
+.p-meta { border-collapse: collapse; margin-left: auto; font-size: 12px; }
+.p-meta th { text-align: left; font-weight: 600; color: var(--slate-mid); padding: 1px 10px 1px 0; white-space: nowrap; }
+.p-meta td { text-align: left; padding: 1px 0; }
+.p-rule { height: 2px; background: var(--navy); margin: 12px 0 0; }
+.p-address-row { display: flex; justify-content: flex-end; margin-top: 12px; }
+.p-address { width: 56%; min-width: 200px; border: 1px solid var(--gray-300); border-radius: 2px; padding: 8px 10px; }
+.p-addr-lbl { display: block; font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--slate-mid); }
+.p-cond { margin: 12px 0 10px; font-size: 12.5px; }
+.p-table-wrap { overflow-x: auto; }
+.p-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.p-table th { text-align: left; background: var(--gray-100); border: 1px solid var(--gray-300); padding: 6px 7px; font-weight: 700; white-space: nowrap; }
+.p-table td { border: 1px solid var(--gray-200); padding: 6px 7px; vertical-align: middle; }
+.p-table .num, .p-recap .num, .p-extras .num, .p-recap-rates .num { text-align: right; white-space: nowrap; }
+.p-extras { margin: 8px 0 0 auto; border-collapse: collapse; font-size: 12.5px; }
+.p-extras td { padding: 3px 8px; border-bottom: 1px dashed var(--gray-200); }
+.p-recap { margin: 12px 0 0 auto; border-collapse: collapse; font-size: 13px; min-width: 330px; }
+.p-recap td { padding: 5px 8px; border-bottom: 1px solid var(--gray-200); }
+.p-recap td.op { width: 20px; text-align: center; font-weight: 800; color: var(--slate-mid); }
+.p-recap tr.strong td { font-weight: 800; border-top: 2px solid var(--navy); border-bottom: none; }
+.p-recap-rates { margin: 14px 0 0 auto; border-collapse: collapse; font-size: 13px; }
+.p-recap-rates th, .p-recap-rates td { border: 1px solid var(--gray-300); padding: 6px 9px; }
+.p-recap-rates thead th { background: var(--gray-100); font-weight: 700; white-space: nowrap; }
+.p-recap-rates tbody th { text-align: left; font-weight: 700; }
+.p-recap-rates tfoot th { text-align: right; font-weight: 800; }
+.p-recap-rates tfoot td, .p-recap-rates tfoot th { border-top: 2px solid var(--navy); }
+.amt { font-family: var(--font-mono); font-size: 12.5px; }
+.p-foot { margin: 14px 0 0; padding-top: 8px; border-top: 1px dashed var(--gray-300); font-size: 12px; color: var(--slate-mid); }
+
+/* Cases à compléter (« cases jaunes », comme dans les applications d’entraînement) */
+.cell-input {
+  width: 112px; max-width: 100%; padding: 6px 8px; text-align: right;
+  font-family: var(--font-mono); font-size: 13px; color: var(--navy);
+  background: var(--cell-bg); border: 1.5px solid var(--cell-border); border-radius: 4px; outline: none;
+}
+.cell-input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-pale); background: var(--white); }
+.cell-input:disabled { background: var(--gray-100); border-color: var(--gray-300); color: var(--slate); }
+.after-box {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+  margin-top: 16px; padding: 12px 16px; background: var(--gray-50);
+  border: 1px solid var(--gray-200); border-radius: var(--radius);
+  font-size: 14.5px; font-weight: 600; color: var(--navy);
+}
+
+/* ============================================================
+   ÉCRAN 4 — TRANSITION
+   ============================================================ */
+.transition { text-align: left; }
+.desk-scene { background: var(--blue-bg); border-radius: var(--radius-lg); padding: 22px 16px 10px; overflow: hidden; margin-bottom: 26px; }
+.desk-scene svg { display: block; width: 100%; max-width: 560px; margin: 0 auto; height: auto; }
+.folder { animation: folder-in .7s cubic-bezier(.2,.8,.2,1) both; }
+.folder.f2 { animation-delay: .15s; }
+.folder.f3 { animation-delay: .3s; }
+@keyframes folder-in { from { transform: translateY(60px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.transition h1 { font-size: 32px; font-weight: 800; letter-spacing: -0.02em; }
+.transition .lead { margin: 10px 0 22px; font-size: 17px; }
+.transition .route { margin-bottom: 26px; }
+
+/* ============================================================
+   ÉCRAN 6 — SYNTHÈSE
+   ============================================================ */
+.sum-title { font-size: 36px; font-weight: 800; letter-spacing: -0.02em; }
+.sum-lead { margin: 10px 0 24px; font-size: 16.5px; max-width: 40em; }
+.score-board {
+  display: flex; flex-wrap: wrap; align-items: stretch; gap: 0;
+  background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius-lg);
+  margin-bottom: 30px; overflow: hidden;
+}
+.score-total { display: flex; align-items: baseline; gap: 8px; padding: 22px 28px; background: var(--navy); color: var(--white); }
+.score-value { font-size: 52px; font-weight: 800; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.score-max { font-size: 22px; font-weight: 700; color: var(--slate-light); }
+.score-parts { display: flex; flex: 1 1 auto; flex-wrap: wrap; }
+.score-parts .part { flex: 1 1 120px; padding: 18px 22px; border-left: 1px solid var(--gray-200); display: flex; flex-direction: column; justify-content: center; }
+.score-parts .label { font-size: 13px; font-weight: 600; color: var(--slate-mid); }
+.score-parts .value { font-size: 22px; font-weight: 800; color: var(--navy); font-variant-numeric: tabular-nums; }
+.score-parts .value.mono { font-family: var(--font-mono); font-size: 19px; font-weight: 500; }
+
+.sum-section { margin-top: 8px; }
+.sum-section h2 { font-size: 20px; font-weight: 800; margin-bottom: 12px; }
+.comp-list { background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius-lg); }
+.comp-row { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 8px 20px; padding: 16px 20px; border-top: 1px solid var(--gray-200); align-items: center; }
+.comp-row:first-child { border-top: none; }
+.comp-name { font-weight: 700; color: var(--navy); font-size: 15.5px; }
+.comp-phrase { font-size: 14px; color: var(--slate-mid); margin-top: 2px; }
+.comp-side { display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
+.comp-bar { height: 8px; border-radius: 4px; background: var(--gray-200); overflow: hidden; }
+.comp-bar span { display: block; height: 100%; border-radius: 4px; background: var(--blue); }
+.comp-meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.comp-pts { font-size: 13px; color: var(--slate-mid); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; color: var(--navy);
+        border-radius: 999px; padding: 3px 10px; border: 1.5px solid; white-space: nowrap; }
+.pill i { font-style: normal; font-weight: 800; }
+.lv-ok { border-color: var(--green); background: var(--green-pale); }
+.lv-ok i { color: var(--green); }
+.lv-mid { border-color: var(--orange); background: var(--orange-pale); }
+.lv-mid i { color: var(--orange); }
+.lv-ko { border-color: var(--red); background: var(--red-pale); }
+.lv-ko i { color: var(--red); }
+.lv-na { border-color: var(--gray-300); background: var(--gray-100); }
+
+.prio-list { list-style: none; margin: 0; padding: 0; counter-reset: prio; }
+.prio-list li { counter-increment: prio; position: relative; padding: 14px 18px 14px 58px; background: var(--white);
+                border: 1px solid var(--gray-200); border-radius: var(--radius); margin-bottom: 10px; }
+.prio-list li::before {
+  content: counter(prio); position: absolute; left: 18px; top: 14px;
+  width: 26px; height: 26px; border-radius: 50%; background: var(--blue); color: var(--white);
+  display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800;
+}
+.prio-list strong { display: block; font-size: 15.5px; }
+.prio-list span { font-size: 14px; color: var(--slate-mid); }
+.send-status { margin-top: 26px; font-size: 14px; color: var(--slate-mid); }
+.send-status.ok { color: var(--navy); }
+.send-status.ko { color: var(--navy); background: var(--red-pale); border-left: 4px solid var(--red); padding: 10px 14px; border-radius: var(--radius); }
+
+/* ============================================================
+   RESPONSIVE ET ACCESSIBILITÉ
+   ============================================================ */
+@media (max-width: 1040px) {
+  .ex-layout.has-docs { display: block; }
+  .ex-docs { position: static; max-height: none; overflow: visible; margin-bottom: 18px; }
+}
+@media (max-width: 880px) {
+  .login { grid-template-columns: minmax(0, 1fr); grid-template-areas: "intro" "route" "rules" "form"; padding-top: 32px; }
+  .login-art { display: none; }
+  .login-title { font-size: 36px; }
+}
+@media (max-width: 640px) {
+  .hd-inner { padding: 8px 14px; }
+  .hd-email { display: none; }
+  .question-card { padding: 20px 16px 18px; }
+  .q-text { font-size: 18px; }
+  .multi-list { grid-template-columns: 1fr; }
+  .bins { grid-template-columns: 1fr; }
+  #exBody .reserve { flex-wrap: nowrap; overflow-x: auto; min-height: 0; padding: 8px; margin-left: -4px; margin-right: -4px; }
+  #exBody .reserve .tag { flex: none; white-space: nowrap; }
+  #exBody .reserve .reserve-empty { white-space: nowrap; }
+  #exBody .bin { scroll-margin-top: 150px; }
+  .wrap-wide { padding: 16px 12px 48px; }
+  .paper { padding: 14px 12px; }
+  .p-top { flex-direction: column; }
+  .p-docbox { text-align: left; }
+  .p-meta { margin-left: 0; }
+  .p-address { width: 100%; }
+  .p-recap { min-width: 0; width: 100%; }
+  .p-recap td { padding: 5px 4px; }
+  .p-recap-rates th, .p-recap-rates td { padding: 5px 5px; }
+  .p-recap-rates thead th { white-space: normal; }
+  .cell-input { width: 84px; padding: 6px 6px; }
+  .comp-row { grid-template-columns: minmax(0, 1fr); }
+  .score-total { width: 100%; }
+  .score-parts .part:first-child { border-left: none; }
+  .sum-title { font-size: 30px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     EN-TÊTE STICKY — titre, e-mail, chronomètre, progression
+     ============================================================ -->
+<header class="app-header" id="appHeader" hidden>
+  <div class="hd-inner">
+    <div class="hd-title">
+      <span class="hd-app">Mission facturation — La facture</span>
+      <span class="hd-step" id="hdStep">Quiz</span>
+    </div>
+    <div class="hd-right">
+      <span class="hd-email" id="hdEmail"></span>
+      <span class="hd-timer" id="hdTimer" aria-label="Temps écoulé">00:00:00</span>
+    </div>
+  </div>
+  <div class="progress" aria-hidden="true"><div class="progress-fill" id="progressFill"></div></div>
+</header>
+
+<main>
+
+<!-- ============================================================
+     ÉCRAN 1 — LOGIN
+     ============================================================ -->
+<section class="screen active" id="screenLogin">
+  <div class="login">
+
+    <div class="login-intro">
+      <h1 class="login-title">Mission facturation</h1>
+      <p class="login-sub">Évaluation formative — La facture</p>
+      <p class="login-lead">Aujourd’hui, tu commences ton stage chez <strong>Fidu’Borinage</strong>, un bureau comptable de Frameries qui prépare les factures de plusieurs entreprises de la région. Ta tutrice, Mme Leclercq, va te confier des factures à calculer, à contrôler et à corriger.</p>
+    </div>
+
+    <div class="login-art" aria-hidden="true">
+      <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+        <!-- Calculatrice -->
+        <g transform="rotate(7 305 190)">
+          <rect x="246" y="92" width="122" height="176" rx="14" fill="#0f172a" opacity=".12" transform="translate(5 6)"/>
+          <rect x="246" y="92" width="122" height="176" rx="14" fill="#1e293b"/>
+          <rect x="259" y="106" width="96" height="32" rx="5" fill="#dbeafe"/>
+          <rect x="300" y="118" width="46" height="9" rx="2" fill="#0f172a" opacity=".75"/>
+          <g fill="#334155">
+            <rect x="259" y="150" width="20" height="18" rx="4"/><rect x="284" y="150" width="20" height="18" rx="4"/><rect x="309" y="150" width="20" height="18" rx="4"/>
+            <rect x="259" y="174" width="20" height="18" rx="4"/><rect x="284" y="174" width="20" height="18" rx="4"/><rect x="309" y="174" width="20" height="18" rx="4"/>
+            <rect x="259" y="198" width="20" height="18" rx="4"/><rect x="284" y="198" width="20" height="18" rx="4"/><rect x="309" y="198" width="20" height="18" rx="4"/>
+            <rect x="259" y="222" width="45" height="18" rx="4"/><rect x="309" y="222" width="20" height="18" rx="4"/>
+            <rect x="334" y="150" width="21" height="42" rx="4"/>
+          </g>
+          <rect x="334" y="198" width="21" height="42" rx="4" fill="#2563eb"/>
+        </g>
+        <!-- Facture -->
+        <g transform="rotate(-6 150 150)">
+          <rect x="50" y="22" width="190" height="256" rx="3" fill="#0f172a" opacity=".10" transform="translate(5 6)"/>
+          <rect x="50" y="22" width="190" height="256" rx="3" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+          <rect x="66" y="38" width="60" height="9" rx="2" fill="#0f172a"/>
+          <rect x="66" y="52" width="44" height="4" rx="2" fill="#cbd5e1"/>
+          <rect x="66" y="60" width="52" height="4" rx="2" fill="#cbd5e1"/>
+          <text x="224" y="47" text-anchor="end" font-family="Plus Jakarta Sans, Arial, sans-serif" font-size="12" font-weight="800" letter-spacing="2" fill="#2563eb">FACTURE</text>
+          <rect x="182" y="54" width="42" height="4" rx="2" fill="#cbd5e1"/>
+          <rect x="66" y="72" width="158" height="1.5" fill="#0f172a"/>
+          <rect x="146" y="82" width="78" height="26" rx="1" fill="none" stroke="#cbd5e1" stroke-width="1.2"/>
+          <rect x="152" y="88" width="40" height="4" rx="2" fill="#94a3b8"/>
+          <rect x="152" y="96" width="56" height="4" rx="2" fill="#cbd5e1"/>
+          <rect x="66" y="118" width="158" height="10" fill="#e2e8f0"/>
+          <g fill="#e2e8f0"><rect x="66" y="140" width="158" height="1"/><rect x="66" y="152" width="158" height="1"/><rect x="66" y="164" width="158" height="1"/></g>
+          <g fill="#94a3b8"><rect x="68" y="133" width="60" height="4" rx="2"/><rect x="68" y="145" width="48" height="4" rx="2"/><rect x="68" y="157" width="56" height="4" rx="2"/></g>
+          <g fill="#0f172a"><rect x="196" y="133" width="26" height="4" rx="2"/><rect x="196" y="145" width="26" height="4" rx="2"/><rect x="196" y="157" width="26" height="4" rx="2"/></g>
+          <g fill="#cbd5e1"><rect x="132" y="180" width="54" height="4" rx="2"/><rect x="132" y="190" width="40" height="4" rx="2"/><rect x="132" y="200" width="48" height="4" rx="2"/></g>
+          <g fill="#94a3b8"><rect x="196" y="180" width="26" height="4" rx="2"/><rect x="196" y="190" width="26" height="4" rx="2"/><rect x="196" y="200" width="26" height="4" rx="2"/></g>
+          <rect x="128" y="212" width="96" height="1.5" fill="#0f172a"/>
+          <rect x="128" y="220" width="96" height="22" rx="4" fill="#2563eb"/>
+          <rect x="136" y="229" width="36" height="5" rx="2" fill="#ffffff"/>
+          <rect x="190" y="229" width="28" height="5" rx="2" fill="#dbeafe"/>
+          <path d="M70 258 c8 -14 14 8 22 -3 s10 -8 16 2 s8 4 18 -6" stroke="#2563eb" stroke-width="2" fill="none" stroke-linecap="round"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="login-route">
+      <ol class="route" id="routeLogin">
+        <li><span class="route-n">1</span><div><strong>Quiz</strong><span class="route-d">10 questions, 10 points</span></div></li>
+        <li><span class="route-n">2</span><div><strong>Exercice 1 — La TVA</strong><span class="route-d">4 questions, 10 points</span></div></li>
+        <li><span class="route-n">3</span><div><strong>Exercice 2 — La facture</strong><span class="route-d">4 questions, 18 points</span></div></li>
+        <li><span class="route-n">4</span><div><strong>Exercice 3 — Corriger et expliquer une facture</strong><span class="route-d">3 questions, 12 points</span></div></li>
+        <li><span class="route-n">5</span><div><strong>Ton bilan</strong><span class="route-d">ce qui est acquis et ce qu’il te reste à revoir avant le contrôle</span></div></li>
+      </ol>
+      <p class="route-duration">Durée : environ 50 minutes. Garde ta calculatrice à portée de main.</p>
+    </div>
+
+    <div class="login-rules">
+      <h2>Avant de commencer</h2>
+      <ul>
+        <li>Questions à choix, sélections et chasses aux erreurs : <strong>une seule tentative</strong>.</li>
+        <li>Calculs, factures à compléter et classements : <strong>deux tentatives</strong>.</li>
+        <li>Chaque élément juste rapporte des points. Dans une sélection ou une chasse aux erreurs, chaque case cochée à tort annule une bonne réponse.</li>
+        <li>Dans une facture à compléter, une case bien calculée à partir de ta propre erreur compte comme juste : une même erreur n’est jamais pénalisée deux fois.</li>
+        <li>Pour un montant, écris seulement le nombre, sans séparateur de milliers. Le point et la virgule sont acceptés pour les décimales.</li>
+        <li>Tu sauras seulement si ta réponse est correcte ou non : la correction se fera en classe.</li>
+        <li>Tu peux passer une question, mais tu ne pourras plus y revenir. Une seule participation : l’évaluation ne peut pas être recommencée.</li>
+      </ul>
+    </div>
+
+    <div class="login-form-wrap">
+      <label for="email" class="field-label">Ton adresse e-mail scolaire</label>
+      <div class="login-form">
+        <input type="email" id="email" autocomplete="email" placeholder="prenom.nom@…" spellcheck="false" autocapitalize="off">
+        <button class="btn btn-primary" id="btnStart" type="button">Commencer</button>
+      </div>
+      <p class="login-busy" id="loginBusy" hidden>Vérification de ton accès…</p>
+      <p class="login-error" id="loginError" role="alert"></p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================
+     ÉCRAN 2 — ÉVALUATION DÉJÀ RÉALISÉE
+     ============================================================ -->
+<section class="screen" id="screenDone">
+  <div class="center-card">
+    <h1>Évaluation déjà réalisée</h1>
+    <p>Tu as déjà terminé « Mission facturation — La facture ». Tes résultats ont été transmis à ton professeur.</p>
+    <p>Une seule participation est prévue. La correction se fera en classe.</p>
+  </div>
+</section>
+
+<!-- ====== SCREEN: LOCKED (Verrou fermé) ====== -->
+<section class="screen" id="screenLocked">
+  <div class="center-card">
+    <div class="icon-badge" aria-hidden="true">🔒</div>
+    <h1>Évaluation non disponible</h1>
+    <p>L’évaluation n’est pas ouverte actuellement.<br>Attends les consignes de ton professeur.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     ÉCRAN 3 — QUIZ
+     ============================================================ -->
+<section class="screen" id="screenQuiz">
+  <div class="wrap-narrow">
+    <div class="question-card" id="quizCard">
+      <div class="q-meta">
+        <span class="q-count" id="quizCounter">Question 1 sur 10</span>
+        <span class="chip">1 point</span>
+        <span class="chip">1 tentative</span>
+      </div>
+      <h2 class="q-text" id="quizText"></h2>
+      <div class="options" id="quizOptions"></div>
+      <div class="feedback" id="quizFeedback" role="status" aria-live="polite"></div>
+      <div class="actions">
+        <button class="btn btn-primary" id="btnQuiz" type="button" disabled>Valider</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     ÉCRAN 4 — TRANSITION QUIZ → EXERCICES
+     ============================================================ -->
+<section class="screen" id="screenTransition">
+  <div class="wrap-narrow transition">
+    <div class="desk-scene" aria-hidden="true">
+      <svg viewBox="0 0 560 190" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="168" width="560" height="22" fill="#cbd5e1"/>
+        <rect x="0" y="164" width="560" height="6" fill="#94a3b8"/>
+        <g class="folder f1">
+          <path d="M40 60 h58 l12 -14 h70 v118 h-140 z" fill="#2563eb"/>
+          <rect x="52" y="38" width="112" height="96" rx="2" fill="#ffffff" stroke="#cbd5e1"/>
+          <rect x="62" y="50" width="56" height="7" rx="2" fill="#0f172a"/><rect x="62" y="64" width="88" height="4" rx="2" fill="#cbd5e1"/><rect x="62" y="74" width="72" height="4" rx="2" fill="#cbd5e1"/>
+          <path d="M34 78 h152 l-8 86 h-136 z" fill="#3b82f6"/>
+          <text x="110" y="132" text-anchor="middle" font-family="Plus Jakarta Sans, Arial, sans-serif" font-size="17" font-weight="800" fill="#ffffff">TVA</text>
+        </g>
+        <g class="folder f2">
+          <path d="M210 60 h58 l12 -14 h70 v118 h-140 z" fill="#0f172a"/>
+          <rect x="222" y="38" width="112" height="96" rx="2" fill="#ffffff" stroke="#cbd5e1"/>
+          <rect x="232" y="50" width="56" height="7" rx="2" fill="#2563eb"/><rect x="232" y="64" width="88" height="4" rx="2" fill="#cbd5e1"/><rect x="232" y="74" width="72" height="4" rx="2" fill="#cbd5e1"/>
+          <path d="M204 78 h152 l-8 86 h-136 z" fill="#1e293b"/>
+          <text x="280" y="132" text-anchor="middle" font-family="Plus Jakarta Sans, Arial, sans-serif" font-size="17" font-weight="800" fill="#ffffff">FACTURES</text>
+        </g>
+        <g class="folder f3">
+          <path d="M380 60 h58 l12 -14 h70 v118 h-140 z" fill="#ea580c"/>
+          <rect x="392" y="38" width="112" height="96" rx="2" fill="#ffffff" stroke="#cbd5e1"/>
+          <rect x="402" y="50" width="56" height="7" rx="2" fill="#0f172a"/><rect x="402" y="64" width="88" height="4" rx="2" fill="#cbd5e1"/><rect x="402" y="74" width="72" height="4" rx="2" fill="#cbd5e1"/>
+          <path d="M374 78 h152 l-8 86 h-136 z" fill="#f97316"/>
+          <text x="450" y="132" text-anchor="middle" font-family="Plus Jakarta Sans, Arial, sans-serif" font-size="17" font-weight="800" fill="#ffffff">CORRECTIONS</text>
+        </g>
+      </svg>
+    </div>
+    <h1>Quiz terminé</h1>
+    <p class="lead">Mme Leclercq t’installe à ton bureau : trois dossiers t’attendent. Place aux exercices : 11 questions, 40 points. Prends le temps de lire chaque document en entier.</p>
+    <ol class="route" id="routeTransition">
+      <li class="done"><span class="route-n">✓</span><div><strong>Quiz</strong><span class="route-d">terminé</span></div></li>
+      <li class="current"><span class="route-n">2</span><div><strong>Exercice 1 — La TVA</strong><span class="route-d">4 questions, 10 points</span></div></li>
+      <li><span class="route-n">3</span><div><strong>Exercice 2 — La facture</strong><span class="route-d">4 questions, 18 points</span></div></li>
+      <li><span class="route-n">4</span><div><strong>Exercice 3 — Corriger et expliquer une facture</strong><span class="route-d">3 questions, 12 points</span></div></li>
+      <li><span class="route-n">5</span><div><strong>Ton bilan</strong><span class="route-d">à la fin des exercices</span></div></li>
+    </ol>
+    <button class="btn btn-primary btn-lg" id="btnStartEx" type="button">Commencer les exercices</button>
+  </div>
+</section>
+
+<!-- ============================================================
+     ÉCRAN 5 — EXERCICES
+     ============================================================ -->
+<section class="screen" id="screenExercise">
+  <div class="wrap-wide">
+    <div class="ex-banner" id="exBanner"></div>
+    <div class="ex-layout" id="exLayout">
+      <aside class="ex-docs" id="exDocs" hidden></aside>
+      <div class="question-card" id="exCard">
+        <div class="q-meta">
+          <span class="q-count" id="exCounter"></span>
+          <span class="chip" id="exPointsChip"></span>
+          <span class="chip" id="exTriesChip"></span>
+        </div>
+        <div class="q-context" id="exContext"></div>
+        <h2 class="q-text" id="exText"></h2>
+        <p class="q-sub" id="exSub"></p>
+        <div id="exBody"></div>
+        <div class="feedback" id="exFeedback" role="status" aria-live="polite"></div>
+        <div class="actions">
+          <span class="try-info" id="exTryInfo"></span>
+          <button class="btn btn-ghost" id="btnSkip" type="button">Passer</button>
+          <button class="btn btn-primary" id="btnValidate" type="button" disabled>Valider</button>
+          <button class="btn btn-primary" id="btnNextEx" type="button" hidden>Question suivante</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     ÉCRAN 6 — SYNTHÈSE
+     ============================================================ -->
+<section class="screen" id="screenSummary">
+  <div class="wrap-mid">
+    <h1 class="sum-title">Mission terminée</h1>
+    <p class="sum-lead">Voici ton résultat et ton profil de compétences. Il te montre où concentrer tes révisions avant le contrôle sur papier.</p>
+
+    <div class="score-board">
+      <div class="score-total">
+        <div class="score-value" id="totalScore">0</div>
+        <div class="score-max" id="totalMax">/ 50</div>
+      </div>
+      <div class="score-parts">
+        <div class="part"><div class="label">Quiz</div><div class="value" id="quizScore">0/10</div></div>
+        <div class="part"><div class="label">Exercices</div><div class="value" id="exScore">0/40</div></div>
+        <div class="part"><div class="label">Temps</div><div class="value mono" id="timeScore">00:00:00</div></div>
+      </div>
+    </div>
+
+    <section class="sum-section">
+      <h2>Ton profil de compétences</h2>
+      <div class="comp-list" id="compList"></div>
+    </section>
+
+    <section class="sum-section" style="margin-top:30px">
+      <h2>Tes priorités avant le contrôle</h2>
+      <ol class="prio-list" id="prioList"></ol>
+    </section>
+
+    <p class="send-status" id="sendStatus" role="status" aria-live="polite">Enregistrement de tes résultats…</p>
+  </div>
+</section>
+
+</main>
+<script>
+'use strict';
+
+// ============================================================
+// CONFIGURATION — À ADAPTER POUR CHAQUE ÉVALUATION
+// ============================================================
+const CONFIG = {
+  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzff9KEtrF9aH2ajzRvpPmePXDjOzLeOjrqpxJRO5uSKsfAMlY24A39eWO2tXBvO-eu/exec',
+  APP_NAME: 'Facture',           // nom court, cohérent, sans accents compliqués
+  NB_QUIZ: 10,                   // toujours 10
+  NB_EXERCICES: 11,              // 11 sous-questions (3 exercices : 4 + 4 + 3)
+  POINTS_MAX: 50,                // 10 (quiz) + 40 (exercices : 10 + 18 + 12)
+  TENTATIVES_CHOIX: 1,           // qcm, multi et erreurs : une seule chance
+  TENTATIVES_MANIP: 2            // classer, numeric, grid : deux tentatives
+};
+
+// Nombre de tentatives selon le type (section 3.3)
+const CHOIX = ['qcm', 'multi', 'erreurs'];
+const maxTentatives = ex => CHOIX.includes(ex.type)
+  ? CONFIG.TENTATIVES_CHOIX : CONFIG.TENTATIVES_MANIP;
+
+// Facture à compléter : écart admis d’un ou deux cents (arrondis faits à des étapes différentes)
+const TOL_GRID = 0.02;
+
+// ============================================================
+// RÉFÉRENTIEL DE COMPÉTENCES — codes stables sur toute l’année
+// (préfixe F = fiche « La facture », pour ne pas confondre avec les codes des autres fiches)
+// ============================================================
+const COMPETENCES = {
+  F1: { libelle: 'Expliquer le rôle de la facture et contrôler ses mentions', critere: 'Identifier / qualifier',
+        cours: 'fiche « La facture », point 1 (définition, utilité et mentions obligatoires)' },
+  F2: { libelle: 'Appliquer les règles de la TVA (mécanisme et taux)', critere: 'Connaître le cadre',
+        cours: 'fiche « La facture », point 2 (la TVA et les taux belges)' },
+  F3: { libelle: 'Calculer la TVA, le prix TVAC, le prix HTVA et le taux', critere: 'Calculer',
+        cours: 'fiche « La facture », point 2 (formules de calcul de la TVA) et « Formules à mémoriser »' },
+  F4: { libelle: 'Situer chaque élément dans le calcul de la facture', critere: 'Structurer / classer',
+        cours: 'fiche « La facture », point 3 (éléments à ajouter et à retrancher)' },
+  F5: { libelle: 'Calculer une facture complète, à un ou plusieurs taux', critere: 'Appliquer une procédure',
+        cours: 'fiche « La facture », point 3 (marche à suivre) et exercices pratiques 2 et 3' },
+  F6: { libelle: 'Choisir et calculer le document rectificatif', critere: 'Appliquer une procédure',
+        cours: 'fiche « La facture », point 4 (note de crédit et facture complémentaire) et exercice 4' }
+};
+// FIN COMPETENCES
+
+const STATE = {
+  email: '',
+  classe: '',
+  session: '',
+  timerInterval: null,
+  startTime: null,
+  elapsed: 0,
+  currentQuiz: 0,
+  currentEx: 0,
+  quizPoints: 0,
+  exPoints: 0,
+  quizAnswered: Array(CONFIG.NB_QUIZ).fill(false),
+  exAnswered: Array(CONFIG.NB_EXERCICES).fill(false),
+  exAttempts: Array(CONFIG.NB_EXERCICES).fill(0),
+  questionStartTime: 0,
+  // ajouts de cette application
+  exStart: null,
+  exBest: Array(CONFIG.NB_EXERCICES).fill(0),
+  exClosed: Array(CONFIG.NB_EXERCICES).fill(false),
+  exVerdict: Array(CONFIG.NB_EXERCICES).fill(null),
+  started: false,
+  finished: false,
+  comp: {}
+};
+
+// ============================================================
+// OUTILS
+// ============================================================
+const $ = id => document.getElementById(id);
+
+/* ÉCHAPPEMENT — les guillemets aussi, car esc() alimente des attributs HTML */
+function esc(str) {
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// Notation au prorata des items justes, arrondie au demi-point (6.8 et 16.6)
+const pointsPartiels = (ok, total, max) => Math.round((ok / total) * max * 2) / 2;
+
+const fmtPts = n => (Math.round(n * 2) / 2).toLocaleString('fr-BE', { maximumFractionDigits: 1 });
+const secondsSince = t => Math.max(0, Math.round((Date.now() - t) / 1000));
+function hms(s) {
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60;
+  return [h, m, x].map(v => String(v).padStart(2, '0')).join(':');
+}
+
+// Montants : affichage belge et lecture d’une saisie (point ou virgule, sans séparateur de milliers)
+const NF2 = new Intl.NumberFormat('fr-BE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const NF0 = new Intl.NumberFormat('fr-BE', { maximumFractionDigits: 2 });
+const eur = n => NF2.format(n) + ' €';
+function parseAmount(v) {
+  const s = String(v == null ? '' : v).replace(/[\s  €%]/g, '').replace(',', '.');
+  if (s === '' || !/^-?\d*\.?\d+$/.test(s)) return NaN;
+  return parseFloat(s);
+}
+const fmtNum = n => Number.isFinite(n) ? String(Math.round(n * 100) / 100).replace('.', ',') : '?';
+
+// Typographie française à l’affichage : espace insécable avant « : » et « », espace fine avant ; ! ?
+// et dans les nombres (milliers, €, %)
+function frText(s) {
+  return s.replace(/ ([:»])/g, ' $1')
+          .replace(/ ([;!?])/g, ' $1')
+          .replace(/« /g, '« ')
+          .replace(/(\d) (?=\d{3}(?!\d))/g, '$1 ')
+          .replace(/(\d) ([€%])/g, '$1 $2');
+}
+function frTypo(root) {
+  if (!root) return;
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+  let node;
+  while ((node = walker.nextNode())) {
+    const p = node.parentElement;
+    if (!p || p.closest('script, style, .mono, input, textarea')) continue;
+    const v = frText(node.nodeValue);
+    if (v !== node.nodeValue) node.nodeValue = v;
+  }
+}
+
+function show(screenId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === screenId));
+  $('appHeader').hidden = (screenId === 'screenLogin' || screenId === 'screenLocked');
+  syncHeaderHeight();
+  window.scrollTo({ top: 0 });
+}
+const showScreen = show;
+function syncHeaderHeight() {
+  const h = $('appHeader');
+  if (h && !h.hidden) document.documentElement.style.setProperty('--header-h', h.offsetHeight + 'px');
+}
+window.addEventListener('resize', syncHeaderHeight);
+
+function setStep(text) { $('hdStep').textContent = text; frTypo($('hdStep')); }
+
+function updateProgress() {
+  const done = STATE.quizAnswered.filter(Boolean).length + STATE.exAnswered.filter(Boolean).length;
+  const total = CONFIG.NB_QUIZ + CONFIG.NB_EXERCICES;
+  $('progressFill').style.width = (100 * done / total).toFixed(2) + '%';
+}
+
+function startTimer() {
+  STATE.startTime = Date.now();
+  const tick = () => { STATE.elapsed = secondsSince(STATE.startTime); $('hdTimer').textContent = hms(STATE.elapsed); };
+  tick();
+  STATE.timerInterval = setInterval(tick, 1000);
+}
+
+function guardUnload(on) {
+  window.onbeforeunload = on ? (e => { e.preventDefault(); e.returnValue = ''; return ''; }) : null;
+}
+
+// ============================================================
+// COMMUNICATION GOOGLE SHEET — SECTION 9
+// ============================================================
+
+// GET — JSONP impératif (jamais fetch : CORS bloqué par Apps Script)
+function jsonp(params) {
+  return new Promise((resolve, reject) => {
+    const cbName = 'cb_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+    let timer = null;
+    window[cbName] = function(data) {
+      clearTimeout(timer);
+      resolve(data);
+      delete window[cbName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    };
+    const qs = Object.entries(params)
+      .map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&');
+    const script = document.createElement('script');
+    script.src = `${CONFIG.SCRIPT_URL}?callback=${cbName}&${qs}`;
+    script.onerror = () => {
+      clearTimeout(timer);
+      reject(new Error('Erreur réseau'));
+      delete window[cbName];
+    };
+    timer = setTimeout(() => {
+      reject(new Error('Délai dépassé'));
+      window[cbName] = () => {};   // une réponse tardive ne doit pas lever d’erreur
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }, 20000);
+    document.body.appendChild(script);
+  });
+}
+
+// POST — no-cors, Content-Type text/plain. Les envois passent dans une file
+// pour arriver dans l’ordre chronologique ; deux nouvelles tentatives si le réseau échoue.
+let POST_QUEUE = Promise.resolve();
+let POST_ERRORS = 0;
+function postData(payload) {
+  const send = left => fetch(CONFIG.SCRIPT_URL, {
+    method: 'POST',
+    mode: 'no-cors',                              // OBLIGATOIRE
+    headers: { 'Content-Type': 'text/plain' },    // PAS 'application/json'
+    body: JSON.stringify(payload),
+    keepalive: true
+  }).catch(err => left > 0
+    ? new Promise(r => setTimeout(r, 1500)).then(() => send(left - 1))
+    : Promise.reject(err));
+  POST_QUEUE = POST_QUEUE.then(() => send(2)).catch(() => { POST_ERRORS++; });
+  return POST_QUEUE;
+}
+
+// Ligne submit_answer : 14 colonnes (section 9.2)
+function sendAnswer(f) {
+  return postData({
+    action: 'submit_answer',
+    email: STATE.email,
+    classe: STATE.classe,
+    application: CONFIG.APP_NAME,
+    volet: f.volet,
+    partie: f.partie,
+    question: f.question,
+    reponse_eleve: f.reponse_eleve,
+    reponse_correcte: f.reponse_correcte,
+    points: f.points,
+    points_max: f.points_max,
+    tentative: f.tentative,
+    temps_secondes: f.temps_secondes,
+    session: STATE.session
+  });
+}
+
+// ============================================================
+// DÉCHIFFREMENT AES-GCM (Web Crypto API)
+// ============================================================
+let DATA_DECRYPTED = false;   // garde-fou : jamais deux déchiffrements (nouvelle tentative de connexion)
+let DATA_READY = false;       // données en clair et options mélangées : prêtes pour l’évaluation
+
+async function importKey(hexKey) {
+  const keyBytes = new Uint8Array(
+    hexKey.match(/.{1,2}/g).map(b => parseInt(b, 16))
+  );
+  return await window.crypto.subtle.importKey(
+    'raw', keyBytes, 'AES-GCM', false, ['decrypt']
+  );
+}
+
+async function decryptText(encrypted, cryptoKey) {
+  if (encrypted === null || encrypted === undefined) return encrypted;
+  const [ivB64, cipherB64] = encrypted.split('.');
+  const iv = Uint8Array.from(atob(ivB64), c => c.charCodeAt(0));
+  const cipher = Uint8Array.from(atob(cipherB64), c => c.charCodeAt(0));
+  const decrypted = await window.crypto.subtle.decrypt(
+    { name: 'AES-GCM', iv: iv },
+    cryptoKey,
+    cipher
+  );
+  return new TextDecoder().decode(decrypted);
+}
+
+// Déchiffrement atomique : on travaille sur une copie, et les données ne sont
+// remplacées qu’une fois TOUT déchiffré (une erreur en cours de route ne laisse rien à moitié).
+// Quiz : énoncé et options chiffrés un à un. Exercice : tout ce qui n’est ni id, ni comp,
+// ni type, ni points (contexte, énoncé, documents, réponses) forme un seul jeton « data ».
+async function decryptAllData(cryptoKey) {
+  if (DATA_DECRYPTED) return;
+  const d = t => decryptText(t, cryptoKey);
+  const quiz = JSON.parse(JSON.stringify(QUIZ));
+  const exercises = JSON.parse(JSON.stringify(EXERCISES));
+
+  // === Quiz ===
+  for (const q of quiz) {
+    q.text = await d(q.text);
+    q.options = await Promise.all(q.options.map(d));
+  }
+
+  // === Exercices (contexte et documents compris) ===
+  for (const ex of exercises) {
+    const data = JSON.parse(await d(ex.data));
+    delete ex.data;
+    Object.assign(ex, data);
+  }
+
+  QUIZ.splice(0, QUIZ.length, ...quiz);
+  EXERCISES.splice(0, EXERCISES.length, ...exercises);
+  DATA_DECRYPTED = true;
+}
+
+// ============================================================
+// LOGIN — étapes 1 et 2 de la section 9.3
+// ============================================================
+function loginError(msg) {
+  $('loginError').textContent = msg;
+  frTypo($('loginError'));
+}
+function loginBusy(on) {
+  $('btnStart').disabled = on;
+  $('email').disabled = on;
+  $('loginBusy').hidden = !on;
+}
+
+async function startLogin() {
+  if ($('btnStart').disabled) return;
+  const email = $('email').value.trim().toLowerCase();
+  loginError('');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    loginError('Encode ton adresse e-mail scolaire complète, par exemple prenom.nom suivi du domaine de l’école.');
+    return;
+  }
+  loginBusy(true);
+  try {
+    // 1.1 L’e-mail est-il autorisé ? — la réponse apporte aussi la clé de déchiffrement
+    const r1 = await jsonp({ action: 'check_email', email: email });
+
+    // Verrou fermé
+    if (r1 && r1.error === 'locked') {
+      loginBusy(false);
+      showScreen('screenLocked');
+      return;
+    }
+
+    if (!r1 || !r1.found) {
+      loginBusy(false);
+      loginError('Cette adresse n’est pas reconnue. Vérifie l’orthographe ; si elle est correcte, préviens ton professeur.');
+      return;
+    }
+
+    // 1.1 bis — importer la clé et déchiffrer toutes les données (une seule fois)
+    try {
+      if (!DATA_READY) {
+        if (DATA_ENCRYPTED) {
+          if (!r1.cle) {
+            loginBusy(false);
+            loginError('Erreur technique : clé absente. Préviens ton professeur.');
+            return;
+          }
+          const cryptoKey = await importKey(r1.cle);
+          await decryptAllData(cryptoKey);
+        }
+        applyShuffles();
+        DATA_READY = true;
+      }
+    } catch (cryptoErr) {
+      console.error(cryptoErr);
+      loginBusy(false);
+      loginError('Erreur technique au chargement. Préviens ton professeur.');
+      return;
+    }
+
+    STATE.email = email;
+    STATE.classe = r1.classe || '';
+
+    // 1.2 Statut d’accès pour cette application
+    const r2 = await jsonp({ action: 'check_access', email: email, app: CONFIG.APP_NAME });
+    if (r2 && r2.error === 'locked') {
+      loginBusy(false);
+      showScreen('screenLocked');
+      return;
+    }
+    if (r2 && r2.status === 'completed') {
+      loginBusy(false);
+      $('hdEmail').textContent = email;
+      $('hdTimer').hidden = true;
+      setStep('Évaluation déjà réalisée');
+      show('screenDone');
+      return;
+    }
+
+    // 1.3 Démarrer l’évaluation
+    const r3 = await jsonp({ action: 'start_eval', email: email, app: CONFIG.APP_NAME });
+    if (r3 && r3.error === 'locked') {
+      loginBusy(false);
+      showScreen('screenLocked');
+      return;
+    }
+
+    // Étape 2 — enregistrement de l’application (une seule fois)
+    postData({
+      action: 'register_app',
+      application: CONFIG.APP_NAME,
+      nb_quiz: CONFIG.NB_QUIZ,
+      nb_exercices: CONFIG.NB_EXERCICES,
+      points_max: CONFIG.POINTS_MAX
+    });
+
+    beginEvaluation();
+  } catch (err) {
+    loginBusy(false);
+    loginError('Connexion au serveur impossible. Vérifie ta connexion à internet, puis clique à nouveau sur « Commencer ».');
+  }
+}
+
+$('btnStart').addEventListener('click', startLogin);
+document.getElementById('email').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); startLogin(); }
+});
+
+// ============================================================
+// DONNÉES — QUIZ (10 questions) ET EXERCICES (11 sous-questions)
+// Version de travail : en clair. Version diffusée : chiffrées en AES-256-GCM (architecture v5.0),
+// déchiffrées en mémoire par decryptAllData() après check_email.
+// ============================================================
+const DATA_ENCRYPTED = true;
+
+const QUIZ = [
+  { id: "Q1", comp: "F1", points: 1, correct: 0, text: "hx2kFod5BgoOxdn1.ZctpWFSpcULWQWPK33+l2G15TP8N41ExctKQ+4fAR8gW/4vcjZzzScNRBSZyKMqgLu4Bnke6Yn0q+QxF+We3sIyiCEtyEQI=", options: ["hVsIGOxU8uNhJC59.vZlTpT46eiydBHqlbGEwN1UbNCw/6L+kHFfr3v+F3cdqf7l0umjn9sUhSenUC54ggCJOfX9FvZVIOTNFshvqIgzFDE1KGQMbynMmP6+CpfKT6txy+j/ag1A2FotYmzIi584dpKV9wnqaHZjyahPMy+IJcecR658U79dkoBpDYTHstlBKt1GyczJTqF6DDbA=", "M17INelVdlRNzWQg.UveB+YjLpCik6LlVhxHfTaHlZKWMILES6AvJJC1NdTJJulTDVvfBdNyMqWW/LigOjxC8XJKQTanluxpJGgDMzcnlV5qVq4QyZ1FMp4GfDgLpaPac+wEtWmSJWC9I23VfQoDdHj25NeDs9tLaLKCQntV8rzqI1ZSWiC4UxMo3F3qI1I+ds/ROP0olJwHfyGDSME8=", "ApzwbeDF3WR8yBM1.T/dMM32yOf47TqmlQmUf+w30blKOiBh5cSqzPSJcIoF5Milc8mw4wsu+xHiLCGqgYQVWt63zAnExHpBONcAkNN0GDeRv55opToxsIqHkmncFRBxTU3ObfynRZ85UGIGk09ZzNtVS8xUfDq+Fnnl2BHzGjo80MA+3ebKxDaUkAbHgXGOltQ==", "LcaKVix8YiVpd4Mu.qhx14i5MrYplUYbWOieugLs5APIm21BYFprtsG5OXuI39hFqggF/O5VXPNGM4KhxUURd7lU0Qp0c4Fr3WlUcNXpUDZCcbA1i2gNyMpa7yYstdzR13MRUFtkGzKWaSxHz4ZFl9j8j"] },
+  { id: "Q2", comp: "F1", points: 1, correct: 0, text: "HJKZKcxrUdhsFRaU.wmYaBGSo2SoQAXu0k1o9or9ABOY9IxEBbUg+D8k8YHWtbIkKnVeTk0IkeBRRy5jYuBWVhf/YcAwieLb2oFVCkAH0plwW2DQlQVMXq85bqzC97TTu6wi3xGpMqCDZIx8s+6MWesil53yrq7jr/kbZBmB/HihhN+ZhzlpipNqC1rSi//6U5bsYIPDu6q6EbAlmEveLoFQPhqqzbg52ktoa", options: ["7EfDlrmbEN2y9IcU.hFyXd8Q2Q7DtSlBRQ26beO4EMeDoT3hehPkpZbQI/Ejt+LxF/sfFrUfPXwIbsNxyL+7+aenMd1QezxxSa2VUD7Ump315mY9XMhHuE+LnbewkfUnBl/d1QB3JBD8teK4GzrngQm25HA==", "+0MVGfIA6CGKGDYe.u9pMoaztH7t22P1M7eLY4ZOU7OJ1aKEvzvwzchAOpfP33oj/FhIimdaIrxyWe1TGhLYpBv/JTInC5SGC9IfDfUxkvjtDePK8rkJIxP6pLNiJAkERDTjmagLosr6D27vBfgGTySL4HmwgMK8lbWiJUdLZSQ==", "ZAxJ3CvdDe0MrqB4.hXoly3mdgxQa3JBMKBSt3Tin/FOtaz69jWyhHeNDwW8jQFE4it6vH9ktv72qFnowQ1me7bPlPPc2+lC2q/PDc+73jZZ+cDIJ0g4NjpPVnuQyqLQHP0hrU3fUOGwOXSBVUc8t", "Vi9o0jqfbyBEhlnc.iWvOqXSkUxW2NfG7IUnSohp9EZ/PIEAZrKW2wdCZZ7wUU9woojHUc48aQIlmm327wYsnwJmNLbG0Uct0rLXU7vltMkC+oRZv7E38f+9WOpEwlruRRsVnGgySt5FP2nkTgVDc7F28Wg=="] },
+  { id: "Q3", comp: "F2", points: 1, correct: 0, text: "AYYy4c+omjdgpVZ/.hqzgPUnbX/3YldDxRBh6yP36XB8Af1yLJY3zYoaOovDE3kvexcHG8qEYzL5bruudq+GAmuLB7UkZdPguNUbVT3rQ6JvQZAGj32IjD+3sS8FY559x5us30MzkMkIuSnu5oYhwFqyEXqSQTvFRA/XagarqnWhK/VV3jMlVfGOjQE+GCbEwMC4WCoVDVNCliscBpDjw+62Cg/mQueAJtRgGnA2iG0oOECxmZwFjt/JV", options: ["e/RTr4RvxmWUt4dl.Wq/gTwDuCpO7fLsREo6iAs5HoslEajpNOZdAbE+Ra8YAeg9X2Zha4jPKQDxgEPKtiHP1uzo+GnFboZP+KEskDja1v0+BHvm+KL8VP9l48miLinfp1sbsLI1LGw==", "iybEPAjxR+Sb7wjd.TWvdRB2ZMz2FMiJmtaTklNwM4/uR/O8iTrdxX8o7w2RWUjJlPfEDMWvIbKt4rZ7dvKr9ovAPZsewwLeGICRaxEU5+4w79XStXM68FMtEZpDe1/1UVA==", "t/Oqv1f+qBGUJXKW.hZYxR82PzGCnmZ7XJe7RqYQFpXCng7LUU8gha5t7a1noQtykKZFXDUFshM3e3U1dYPxbGAoaMoVLdUPO1/ong7oI60weLbUJ3g==", "13QUVpvOP0ClpjX9.shS8xSuS9fNeuRty/YPEkCG3hkhmmmiGhE4IXEOYJQt176a46wh82lqmmYkcCCvD0N7kqnYni9w="] },
+  { id: "Q4", comp: "F2", points: 1, correct: 0, text: "xNnlu1ghjNZPlpPS.JEC6KM+KnWBm8T7yM7dmiQwTmQ6W6kh0nwK/XDAJnyG1eECAM4PrOf5M2fujzuCj/1eE1OhyTskZAHFVlr3QQ/3pmHy13me1M0y4xqu3X9qhdRWMliulw3lRGIQZ6A==", options: ["2F9vq04fnuJEeKYy.CDnrMQGUtvOQHm+ad/U/ZbMd3aS58eGf1Ui5+Tj5ZCney60Ei/dwHUcKcgzxhgJduTXLDrBvv2P8GXnYyPJVOYm0kRHJ211jnpQ7xWNnJBXIkpFoifkvoWlx4xB4JIKjihF7HqE5P2RYaew=", "JAxeEh9HQjrrYh+5.TugqZYpNjL3KOwuLMOS9GOgBLfXCfR6l2WzxKmmu38t4D/Xn4CUxSrF7KZWVgmVb2V/GvIaV0YyrY98E8WE1YeKskiBgxO4cMc3iJeM9o76QhvrDltR9iqp53oESTMag8NXtkjKUG0es+pWD", "S+MyrVs/iM3gYRaQ.5a6Q1WN1JoFIHA7TCQu743Sy+i3ddRdEZjFdN2DAkpAnMEjWaysPHtadtffXX/WD6IBRiH1FHQc+kQugtjxAfCEHXHE5MgYgP4DCvUQbzfb2FCXQpP/MRcgvWa5YEfQKBZlH5rg6viBTVqVX0NlV", "ltbv+zg/I49p48Rz.FWxIGOSN3w1NbsBTYo56phsduqBbcFmMEmgVWX4zG4rk5/xM8NzfQT69jS6RbVSMQNMLVLH4jBFd6eDkufzjkB0qM3Q6ZEsTvknjWWxx7DHvJCLmX/VOrb6/1cqXrb0="] },
+  { id: "Q5", comp: "F3", points: 1, correct: 0, text: "Y0QspNocrYOMn19K.fCm7T58CoABnVaNcddL0JepBfzgG4reDORAG+J4jLzIRiWtW96dywOHBkipr42JOKRoNi/v4C++zcvfsuDRQ/qS+JCIRMytdstYOT8qmas8d/n2aKGw2DmOSV5IlE0pIpNSH3uPaVYR7z8osDlqNvbs=", options: ["/u4ptLWtiALJSSpM.1FAeCPTpO3HNS9RCG4srPlviHYi0+e9KroE=", "H8mFOCwaWzP0JqRH.03pNZmY2IINnWU4AAPV8W7UAxIh0c6CIYHU=", "iQnnbEqccM48NwvL.zEJxQvwPyAldOfnlzYjQuzhbAPCPy3CnX+M=", "tLEh/tGPHN5Uyu+e.cbnU9Z8/wjTdAMuWbKL/b0XjLf1GRvgII7E="] },
+  { id: "Q6", comp: "F3", points: 1, correct: 0, text: "SLo605Pf3skfJFT+.P5pZyPJgVsMKSjZS5J6HfKbcwQ6Ztfd8tlMCu1/l57s6PqPS8nQlTWPk/Hn7Y0us4H63vqJlm5T4wdpXxn2fCr83PHFyY4PItAHgphu5TNRZXITDFMsZCLiOjfTVhmZpqxUyEssgRauADUuNMp59eRvIejY3xZCXzvkfULJYzsjcalUoP8GdHg==", options: ["QaR8XR3LpnykRzEo./g8NGJAVgoSTUEZyPhHoW31a/wyxr6S7Btr0Utslvp0Y", "RbMfezOWhJCiB1Nf.4GKXWfnyxEVWeyL6lXV2V5GYlZxDJmNw2Ba+aqfoASQI", "/81B2rbD5xfAhkFU.umUKOK5WGBnR2HoVkdkYnZoy0rZGO0cV29I2DGMvhEgd", "gHQ0JJXVhGAwnD/s.qjxONAY2jvwWW08xwq+hjuruXSA0DU0iJz31BRlfM1Xh"] },
+  { id: "Q7", comp: "F4", points: 1, correct: 0, text: "9KugrkPntDoVo5j2.zEWv3EVLg1Fw4M7h+eJkpQLPdmAD7koYApsPt4wDUBz6upiiHNWT9QPMT0cD5kUOmevF/ojUqg8X7B1z2aEmVzaYuCyGGvHL9QBnQMVOZKHIVhfg/oVhVjIvHYE5F5Ox+J6i7iOmuJz2wpmM4fXQmMGPj7gsTUbJ9w==", options: ["JjWVulpN1jycA9jm.f4wqYqMn3+Mfse0apOL93JFwo43GouqatM2oX8T9qaSK2e7M9fSeUgZ9fGfRrvx0KswXzeZvus89nm+tEvV5k9BRM0xAOPvYBeqoGHW95rQWo7q9UlFiqP+w7HwHeD7Wc29Qn+yulvDMgunxWfq6rgdLTVeOdKZCeyjSAg==", "JiM6oTZpsKH6BST6.GSb/dqEkJjoC5p1uuH7YLYSdCPkV56uA+nuXIOTUA40uw6UDUl519Uxer2cyfQG3ubwwovJl1GScmrYw2eU2KPUYDPrNvOFKqSDVTXWISv6Dedck", "b1pVAdAcLIQ2NZpN.6N6p14+2ehLfEfpanmEVoJ1dRu8oyg26PBY2FdhcaJtM0PfBAebgdnGfVvlCNpxUofFYWkXJ/65NIw9BSaC5Mxwa7MNZf2EtMmyqy74jCk7J0etgIiSsuQTY8f9u3g==", "qGr5YcQm02JI1Xnr.o2dBJR+U6HX/s1mATELDm9oONuA7WjwjYwflzBJo+f2jxKBk18tY7UToDPjBzzm/cM9kDTlNKc6OUsftbZUYO9kFkPDp9yJ20prDHC4KTPecwOAL65Nzc87hkettRsv1748MA51FGNIxoA1FOpObkw=="] },
+  { id: "Q8", comp: "F5", points: 1, correct: 0, text: "jneDAhVw0ZXc6pps.KTCWieNEUEnGiMTYBhWOqReEK0E61wvtrF7VbvsyAqmFi41RvsNKnBhk53vR8wiXdejGpHM3YqvyGNOGwVNYUrXRDrS5vxOy5pSDEvYrfcWCKtbG/LHKfsHdrMGD9T1AOW+FthU1gIAJTVoUyu0ngPzHC80giXRA1Tgiia7JF/BpgNXCsBnV/fp9YyuO+rknZjeugTEskkSiL0QSLExwt0tXIN6C3gCpMw==", options: ["uHj0FWwSpdl4xKlw./E1Y7WJGm8CAvfnDapycGQI+Ejlo5cd70DYA+cDYZFANoE7U3hR0QuuKkLPPM43LCBcg6pg6JN4x6w==", "Rc6RbDGh+4wPd5Pe.hlwzVEV0e3Yeb6socEXjEDmfpt6dByDe1ZIZPZiagzWi9mEzgfuwFlHk/PYIhZc=", "56TS7EdPPrvSMZJE.xBEbCFOKZ+S8VAut43ZCoKky0qG603kpzbHhjjq1Ok9+ZOh6cXOMx/6mE0L4lxewklrCQl09lrv99NNU", "brNhlLmgUgn7Q0iB.eUU4Tt5GpwBXWyJJ310hj/u+gtBjNl8g4zf1h1s0LJYZ7JDhDEbHnE7tmANSi71MY0FreHIkQbqQ8CdoCzpS+bPTOHlWmDqYXxk/QQuW"] },
+  { id: "Q9", comp: "F6", points: 1, correct: 0, text: "X9227uy3Kwk4VJ7Z.1aGZopaYhKiUsOWilkDRBseXEeRx4a6hWaoYmh1jddyKvQD60PikvVMIBNiX1sQ1wUMM40rfKiLYadcx/Ph7gaxigKgy5EYkTrMyNK4papF6wUtxDRpn0Ts4to3UOpy7CH77D3KNqhmDVf9t/RxtIDfy", options: ["AExaaLLWIlyPrRJz.J4lHlpdojxjev63jY+B2rmmIrQtI0Dm8s0enkX6OXig4IHO5i5y2nF5Y60upsTEq7KEG9EvMP4ikx31I2Q==", "MIjaKtrWq47+slaM.1s9ddO5ERfjVqTlxqmLgJJSfmBZ6zUvYkB31Gw7I97XmtWPJ6nhPcNCekLYLesLL94darFphoLcp64pug5pX", "gK9uKJJ2+MhRqhYV.0Ya5zqGlKawE1u9Hg75jlw3eMUdAmc1tosR8+7NB0bo+23vmRJo16FCjA5p69KrVYnEKCTxZC/I8QySrhJlfbf9fGMlP", "qjdTwvU8aduHRWr6.AFHz6IdKrD1uTZUkYwy4CsJuGKKGsrm5B1AZ/DpGOWEOxYPhDsRw1wVgApL1D11XbTDejaOBA+x3YM25L7c3gucCwIKUi5A="] },
+  { id: "Q10", comp: "F6", points: 1, correct: 0, text: "qBkKfXGInuvUQ6UU.sbXZ8Si0W9A69TgOGM2Qr0dLbCI09sU7Dnuwg0i3Fw6g8+6SUTbfv9gq3pse+OmLzFTvpvsC+IeCXNg//Q0+XzMWwJcks9NGbh8M41AAZ7lQQuF35ftogAsApq3K0FtEjxtIoYGxUGaH7B0tpG1lajBWrvWo7RP6FVtMHwkS/AEui9+dIq5rfFyPJoe1AnZ9D/PAiZzNKGsz1wmOORTC", options: ["+diU2VTUFVSHlUfU.SvEI7fNpXmc/xv6bXggk1NKB/21j2j2t24Jwf2WeXtrY/a+PVOi2FVCYkPZ1vhVDjcxkxVX0S80M2PtCWqMjg+KfhrPcabzyIuATY6OBF1z2qxfgDQpNXCQ0k7AfB9xG", "gqOsmsYg7WJirpN5.9qF96d5MJOQMo+QuuTzlNF+CqOS4IO1D/Po3DIrtsRVxSSo8ZaPyGQk9IPAth2K/ReZKORQRaTOvNehYTX7S5KIaCFfQgbyCyC2SWJ+MgAgsr5gtLfZPjISa/hJsQamWz+01jpN2cLxxZGib", "QLnO4HO72WyBvQGk.iF66MqaJYE3azfztvAWz8fqpJ2/OVsPthjuCimhujBPItzwYRKrHF4gMUi7hyUz4vUL4a/sO7m5IYJIYiV8f4vJ1vOawR3wVdWm4kq9XLA4rTGdaFwoMHmL9U0ZM3XACcJtQYHhLTk8lfvK5eTEPNIFnUw==", "1beYLH5WVBsx1f5j.UiWbOpYkLxbIFlxBdTR7JE2fmlYA/u6nab/o274yMeHOfoeBIMi56g2RVEu4MMigjzxE3vksu0hEKXtdiUcl3X+x3IYgpQTdCo0y7gOxwYK13lvpxRxMhmfhHs6Q9gaQ11SmaQinXoX52Q=="] }
+];
+
+const EXERCISES = [
+  { id: "EX1.1", comp: "F2", type: "classer", points: 3, data: "GgzboDsh+uDLyWfP.os99RMLLHtEPiiqFebIHyf7vJ4s2FvfDl2Aa2XnZrUWwI2cplJ9RbC8boRhbC64gzVEcFLs55x1TX0TV89N57jHALOLhJPqxOi5XHjeYxBa2uK2Vc2MqoRlMEt7KxkAsIt1rDWhHvG0AFHzlEnbMR51z3kzsg9dgbRqaMlg4TjUiYq/aXeRJsGTynIJ1A80sij+0AtG3ETDiAKmUYuaZvvLhx+hKa7d73lMDJlh9Voj7Z91uDTTeApkbtdIG3fFx+g/3P7XQzxIVetS4dq5i/4COrHgu6GXsVjbsnC/VnC++E7M4VdJ/enN1by+xxN2MFYRBbAz+a3e1CQAey4fjVaTCONK2xCK5RslwZ7YHa5yWMmcJTCa5Stqd6bJuUz+KzMHY/1Bcr26btf7ABO/qImGpXo9YwKzRuAb7O1fac3x1AZlj0WTMF/RWO1e1LclLZ+/Cah5aKsLtXXdC4lG0Xk7LzwYvSmzGq2/rozIet5BHWfIKVvWqav9o/dulm4myeHjFguN0t02mXmv7djlCuH4dDgHmU0FEqxjt2e89tdTPXHaacP7cwquNTIHBdWMCHxHtLOVOKTFsEcAZkV7CZI8pKaZCwxM2Nt/jfh+NE6S1aFXHXuAYceC5IqlggcZ7s+CgWZzfZRwD/wzLm5Ixhrefx4oiRkqWr18fkwys+u4v7wBv87KJVQWZDvfeOU/lfJR8Av/4Iw6vd8EQ5H+f4vjqezNweOExdA1mPDZMrSzRb3dQjK5B6hXc9tB7QVc+qd911hqdfct4xy7WwcBv0pkK9r0WyZBsmgp3Qg4wX5nlmN3oY2KkhiCeEbKL75k3WfUL2cdO2t2f5n2HS3aQDgKVVOKO9iXY43oji3xyH2CvO2usOnwV0qUjxOg/6WbZKCFJaJvlz66MDlARPCkJLoto1g/7RoIYKlKrOVSDD98z7+AKlkWiJCsr0EEXreLyd3Mq8qxQ+LGmQ6D/gd8HDGXgpLRu4KNMZkyZJBa9YPqNLsIG7qm+Tr24Mj+wkOmRH/VqbZjo3tfrNcZkO89jSFcjf9/05hGUzPtbX4YRGkj3wKeo+3fQd1/SJ3HVla5BW9nvDtjXBnlgsZ4NrL/v7vRHknOSnyL2phA5vsx6Fgcim4k+1dFzP8x3tkuF1mvEOiSPzlHLjSttPEcBUw2w4QOMvTOOJjPbFa6hAdiErR/A6e9sKZVIPdVyGj14AHSolmyERP7DdDA40BumkzFfx6DGkxyf/Q==" },
+  { id: "EX1.2", comp: "F3", type: "numeric", points: 2, data: "VrXIWeCEPDzqDfxY.iMUd9PwIjKBItAOn4vZQQJtWCHkWQbofeRTprEE7PmQlCYTB8j2PH+zTGwluuu0R0UQyHJHQGFqvlN9fTI08wkdKP2gb2Wb3UIzqn+uBi2gJM9YWbMEzRtscyMIak0xtil8h+r8CqGx1BEmLCldGVs8LCPw0VsSx5pgy6zogUpmmkk4ybTPZ/ysjk4CyRzA/fOwjSY3ZxnsPyvveoIvI2maf7VpPN06CgX/mkFysCMRNmF5lEG6+1h4mo22Ogd2lK9cAuPTvKRsLMHFVU0G/BcZeeVUIt8S61gjZrIuTvkW0RtNQDRk4PwL4ecZKbSYLVVHpQ3Lo//YBdklwr4TXbjPxZOH2+ozZSqdUKMz7p7c9iuCTlg5zmzhanR+b6sHH8tsTysmx+orS1LeuvcbksegbKEVgdCefM6Hq9qwcueo6Q7qqbgVeITBRXxEqT9Z8l7bRUoTu2arBxBlupEgreIDvWAv9H7pcwaLon7keRIy32AZmFKgKM9/R+WRwGXsoBeztNpQLg3ZmsCPOVMYmYDfZ2CcW96AkUVlWGYcBUWNGoo3h4RFjsueq4DgNzUdOl9iyzgJkG77YDJtpbxE0WLtcGKVmQxfS+6cAGMxLOSAWVgF5hSspudCojyrnrnMVWfYF40kW+gs/KieXdZlspQ/Z3VEVIGE1jf9VNxolLZvV4y7VPoLK3q19QiTC1/2kmT4eI4oV" },
+  { id: "EX1.3", comp: "F3", type: "numeric", points: 2, data: "86KGcWRvOfZ++WCe.P+w/TdJ0+Vk16wJUmJZB25dMEnbqPq1cEEID/AMAFGzU+tH3aNCdI4tqBOHlLKFVEZHfbHBoodZHDBVte1Yc1A3SEvQHIC4YILOtMR4lfFOHzUonJX4TiiVEzuq1e5f6XpLin5m3HojFWwSqCahUZudp+A/OMcKJvH5Uvu+bTrk9d+ywXpE5Om4fIepLXragQGex3nLZ9sSGZGkt8bi/s0bVCstBspdk9r88Ev6DSaxaUKUiHTXN9pxDJdcOTNh/94ukNOSTilQ7rsMcewKutCycZvzHlkvkxaHPRkEIxaoocnPfhxwEnUR3qwIp5FW8tWMuoq/e6zMHxMTqibY5pac7rFXZWr5hoOJkhpQvNKFPhTtamTAuBprM8wN4G+m75FXxEc9ugkLK+gSl4DuOjlycVuVoWWNfOQyG3hpBe0npkF5aPjwJPDyn33XAmEB5Bav9r1AJlnv21t5q5ToQH7x5aQTNn3ZTGfM7f9/jfChbnz+odDRrvSgciU3QXfiGSgHb1n/98JwguVldahWf/t5/sdi2sR85bEF0KVRINHZz0rkNI8tAdwS7YuUc4jUaTtUlzf3kUVFXyuEi+srrh4KdnPMQFYt1Y4w36TTJRif47DHmCbTrwHVY/3HIXKYIz+UwhirTHnkxTno3xcl7jnDgenlBio3k3ZisZp3K267fNbV2QVkp5EA5OHLpgRo51N3XuIONlc0f6Q==" },
+  { id: "EX1.4", comp: "F2", type: "erreurs", points: 3, data: "Aq98CzM8MJ+RO7vj.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" },
+  { id: "EX2.1", comp: "F1", type: "multi", points: 3, data: "y4Q8mvnHtfnBETnm.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" },
+  { id: "EX2.2", comp: "F4", type: "classer", points: 3, data: "2MJ3yuq0siZ4pElm.KrK8In1PqQVoZLM0ehjN/Eh8uzxecODbruGY0ue2FqDsrvlhjgeVESaZ+IRbh2kPHUDIatbTCliNNhfGzSotK46+iV3Gp24hYDc+un81Cule4ja1ZCAf4zCYtBrl7lGq9qhrS45sIFdRNZImaobZV3evhSNrWj0ElfgbRK7DFGjt/deacdqRyrckhuEUmf97FAWWd4XdeK3aveTf7c0WNsYcgqOH+LNXQ5ZIfLFxPSYo7EzzvrPMKRAe719veT70jKZu0wS0feG2wnsiDc23cvKVSvXJHuednC14GJ+LcVJs/kDQumlo8wuK54ZzWg71MIOXdmSgInoktBpgqXXRC6rmwtZYjC8A/R7WCnHy1ukfU3Tev40tij7wL6KwASKkO6Dbl8EORJ2odUdTsfNCeTpceB0rB4P8/LRRYB8jRzO8scFub7VTrO69EXU6vYrbc5YVJnhhm7RSzsrIG9ycP4lb/tpZ28dOr1zBySHGqmcxv+UZ1nCVkVO7oSv8DF2Q+E4B/yrijfgxNz8rr2r7E7WojbwpRVfIQW66eNa2/Fj4loE2QpAP8dwvi95NELdwHj7HZ7qqY+07GxuxMR4rKXiYyP7N++daLR3OZCJlEFXEknAgUnl551PGLygacXHOkt4sJztK00NGfIWMNjB8n+XQrq7Yyr3UxXfY5NGNA4EGDrMSOIm1clrEFpDulZSuIvDOCg3sN4KV1SbPIMloaFwDSZ9hiFyrevTWmMnqrF4QKMQ77OdNQ7aIk1eqJYF7S7kc6pT105cX35rko1L8YQQN/TLIdfN7NZLWx8j2VSCdrYECz6e4rVFKmCzn5glchRyEHXKCRqPvS/jTmq3S6XRPXry9HIfsdoE+i17MbOdu419ARESCCflagh3xboi186tBd/zoTi8vApBOFROwJ8Udfd7Owi4ncQrds4+iAjJKpGhbZc8dqzJxi77ZSkFFDyslfRO+OCUDowGdTLt4cRttiPr0oZT/qyni9Q/GyCt0nBPjxYXjFAfC2ycQ6D0OKnTbV80GF+FpwzofpKOBJCF5+uvzCaz+C4pGeMDt+QHN7MGLs+QoUgYld2gG2AAzoDWlCQnsnqL/5KAWUQl3uvgbHoC5KOEwWRaKawGlikHZMsLyLjQbm7Yo5QjdKnCMx9zJuV9howIDDRlclSJpYZJO4aYkL7L6uaU+tVYxESpQtKhxT9B9evAPtzcdyeaVPNWGAHRy2Xdqk7Zw8LXut9VmTcqw0GQsRNLOoTHhQZUJX55sh7EAWcCCiL5nZ708y3Na4er5YE01rPb5+hOO7qBip2kyc4R/mYWItJqkalDDefmidxoB+ofYXj3mHufXf9M2D/A9huaplDao2pV/SDjvFcG8riusPL2lGCXGWB6rnhRiNjVKExti6SJezte0Kqauh9GQJwyX1iVGx/UKyqX4CHlbRGDDPTqzlToW9V4M/IVpKw==" },
+  { id: "EX2.3", comp: "F5", type: "grid", points: 7, data: "NXiswaPDITivqSNH.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" },
+  { id: "EX2.4", comp: "F5", type: "grid", points: 5, data: "ERT8doiyoi6KIGkF.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" },
+  { id: "EX3.1", comp: "F6", type: "multi", points: 3, data: "YAtN196gT5UkW2nU.hzqp6mU5wyeKXyxot3iUq7ND1NSOzpkuyWckE57fHcrkL2fqGBRaF2bwj2dyAUeB6XRauIjCY3tCyPkbpuyVvsQi1Ok09qgRnjlnv9HTo2iFnc8nEnN8o8E4hEdgFpim4/k8+3M1htx9ei9pjuYZ4xZhYLMQcUna17DsOyCePseS+9Cc9F1YDGyTd823rU4UkbpC7NZmakj32vgIXghtbYcfcmguFCTa9nCgNODQOtLoA9kL4FsbUphs+bXEA1lrSfUQ6KU6Ry9dwaVG6mOR2/1aq3J3RwG9DfR0T/iPTL4+uOk+6Z2Uo2i17LZ0O73DoQBKIKQsbIa9KAK5uCaGewzjEYoOTp93gza8OhpPlsPuFFqcsWxwd1tnbmXtCyfgewIVZgphaHOe7D5/5Z/56ig9x8Gg8+ObCO0u7o2ixPUOBcgbel2E6rq6/4BfAdttifxjf3uSnZm9Rq1DpyXUcGo4wzFwbogn+K15xfFz3uZpH6Z/ioFCAt9DgoLVY/4DTUQa3ukCqffMqx9x2fzoKSjBfykRDr1Bab6puo40XPf4A+ecaSD5WSJp1wWnLHJRjqxPtAX6Hv01Tt3F7MPS+zFfV7ryRQsSRbI78VwterZn3lljNJeseTdUhVgP87HmO0QtU+ZDgG4a8yd+XY6OIbWsHocersFrF3OqFAvMcGU5C9sukstoNoyYXBHgTSIZNtpzsrnTOytYcxjhNK3Q6vlPRwhFR1fsdPMmuHa81qc5uVZtiRo9S7SyJ2y0gakJqNa2IJ7gisvpr2NXN8hc3mgJ87DK1jlt2tCRJonWoOxOuAxt1LUiwLHZLSp1GDQd/EYZERT78egO/FUM1eI7Rx4XGi7wy0g+2rZ8GkCxNRu9H9aarWDBbt449cddka7v5W8KJhV9hMbZtBt3nwVymFOlCGLJUxitVpP6kwFWxhH33FhSeRdwn5EPAoZP6rylufFW3HOK3Ufc71JVLKMH7I5f9DHpyMXTJdUMj8FDzlE4gYWtub8pjWyD3WvshQvRHhf1rfqSExXEb7j5atgWOIDKn0Z8cV8GhXg+xdC1Y2xtD3Nm6OL8Fvt0GYhQm1if2+XQ859M1s4HFdTkW5K2FuwGJdZDx3u4zXVkStoqFR63y2uNdBBhY26pTzZcpe2kHGoBMnUFSZaQS9Mx06PqXLSNtxib+mKe7SUttGY47AOF7qeBmq2zMh0LxXO0+ggt5H2509kXppaI1wJ/rrft7LAvzAQ4a8yD7Xo8d//VT8U4GEgNbrVoe0lhrw4vBrkbHxwbTgcyy6Ow79xnSoTaNRU6ZSl8k1zZjwyKAG1mLDTYnbzo4+R737hpkjsgYPxlZG3ZQgOGEDMFoWxzC1iDMCHCxebv+wqBPambOMOhF84Nb1G4PLkVl+i3JcG36jw7OWzJqv1jTC7JEpo+FWePVtzq47FpNaFxfB3F9eOihIGdc/n1byTDexjXBo9PN+HVbatnsof/ommXAu+HWKyGBfMxChNYiqoYLOklbWuIb3AEZS61QZHwq6m8+fkKbtYHHnqeyY27yhFpPg5/OA==" },
+  { id: "EX3.2", comp: "F6", type: "grid", points: 6, data: "X5FXP/0yPcibGGHy.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" },
+  { id: "EX3.3", comp: "F4", type: "erreurs", points: 3, data: "jgMHzW2uCaanX+df.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" }
+];
+
+// ============================================================
+// RANDOMISATION — appelée par applyShuffles() APRÈS déchiffrement
+// (ordre stable pendant la session, différent entre élèves)
+// ============================================================
+function fisherYates(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function shuffleOptions(arr, correctIndex) {
+  const correctText = arr[correctIndex];
+  const shuffled = fisherYates(arr.slice());
+  return { options: shuffled, correct: shuffled.indexOf(correctText) };
+}
+
+function applyShuffles() {
+  // Ordre canonique conservé AVANT mélange : les réponses envoyées au Sheet
+  // restent comparables d’un élève à l’autre.
+  EXERCISES.forEach(ex => {
+    if (ex.type === 'classer') ex.items.forEach((it, i) => { it.k = i; });
+  });
+
+  QUIZ.forEach(q => {
+    const s = shuffleOptions(q.options, q.correct);
+    q.options = s.options;
+    q.correct = s.correct;
+  });
+
+  EXERCISES.forEach(ex => {
+    if (ex.type === 'qcm') {
+      const s = shuffleOptions(ex.options, ex.correct);
+      ex.options = s.options; ex.correct = s.correct;
+    }
+    if (ex.type === 'multi') {                      // remappage des index corrects
+      const correctTexts = ex.multi.map(i => ex.options[i]);
+      ex.options = fisherYates(ex.options.slice());
+      ex.multi = correctTexts.map(t => ex.options.indexOf(t)).sort((a, b) => a - b);
+    }
+    if (ex.type === 'classer') { ex.items = fisherYates(ex.items.slice()); }
+    // 'erreurs' : rien à mélanger — le document doit se lire comme un texte suivi
+    // 'grid', 'numeric' : rien à mélanger — un document comptable garde son ordre
+  });
+}
+
+// ============================================================
+// MESURE DES COMPÉTENCES — cahier des charges, section 16
+// ============================================================
+const ptsOf = q => q.points || 1;          // une question de quiz vaut 1 point
+
+function auditCompetences() {
+  const compte = {};
+  Object.keys(COMPETENCES).forEach(c => compte[c] = { nb: 0, types: new Set() });
+  [...QUIZ.map(q => ({ ...q, type: 'qcm' })), ...EXERCISES].forEach(q => {
+    if (!q.comp || !COMPETENCES[q.comp]) { console.warn('Question sans compétence :', q.id || q.q); return; }
+    compte[q.comp].nb++; compte[q.comp].types.add(q.type);
+  });
+  Object.entries(compte).forEach(([c, v]) => {
+    if (v.nb === 0)  console.warn(`${c} déclarée mais jamais mesurée — la retirer du référentiel`);
+    if (v.nb > 0 && v.nb < 3) console.warn(`${c} : ${v.nb} question(s) — affichée en « indice », pas en niveau`);
+    if (v.types.size === 1)   console.warn(`${c} : un seul type de question (${[...v.types]}) — voir règle 16.4-4`);
+  });
+  return compte;
+}
+
+function initComp() {
+  STATE.comp = {};
+  Object.keys(COMPETENCES).forEach(c =>
+    STATE.comp[c] = { pts: 0, max: 0, nb: 0, reussi1: 0, abandons: 0, temps: 0 });
+  [...QUIZ.map(q => ({ ...q, points: 1 })), ...EXERCISES].forEach(q => {
+    const c = STATE.comp[q.comp]; if (!c) return;
+    c.max += ptsOf(q); c.nb++;
+  });
+}
+
+function creditComp(q, points, tentative, temps, abandon) {
+  const c = STATE.comp[q.comp]; if (!c) return;
+  c.pts += points; c.temps += temps;
+  if (abandon) c.abandons++;
+  else if (points === ptsOf(q) && tentative === 1) c.reussi1++;
+}
+
+function niveauComp(c) {
+  if (c.nb < 3) return 'Indice';
+  const taux = c.max ? c.pts / c.max : 0;
+  if (taux < 0.5) return 'Non acquis';
+  if (taux < 0.8) return 'En cours';
+  return (c.abandons > 0 || c.reussi1 / c.nb < 0.5) ? 'En cours' : 'Acquis';
+}
+
+// ============================================================
+// DÉMARRAGE
+// ============================================================
+function beginEvaluation() {
+  STATE.started = true;
+  STATE.session = new Date().toISOString();
+  $('hdEmail').textContent = STATE.email;
+  $('hdTimer').hidden = false;
+  initComp();
+  startTimer();
+  guardUnload(true);
+  show('screenQuiz');
+  renderQuiz();
+  updateProgress();
+}
+
+function setFeedback(id, kind, msg) {
+  const el = $(id);
+  if (!kind) { el.className = 'feedback'; el.innerHTML = ''; return; }
+  const icon = { ok: '✓', ko: '✗', retry: '!', skip: '–' }[kind];
+  el.className = 'feedback show ' + kind;
+  el.innerHTML = `<span class="fb-icon" aria-hidden="true">${icon}</span><span>${esc(msg)}</span>`;
+  frTypo(el);
+}
+
+// ============================================================
+// VOLET QUIZ — 10 QCM, une tentative, retour binaire
+// ============================================================
+let QUIZ_SEL = null;
+
+function renderQuiz() {
+  const q = QUIZ[STATE.currentQuiz];
+  QUIZ_SEL = null;
+  STATE.questionStartTime = Date.now();
+  $('quizCounter').textContent = `Question ${STATE.currentQuiz + 1} sur ${QUIZ.length}`;
+  $('quizText').textContent = q.text;
+  paintQuizOptions(false, null);
+  setFeedback('quizFeedback', null);
+  const b = $('btnQuiz');
+  b.textContent = 'Valider'; b.disabled = true; b.onclick = validateQuiz;
+  setStep(`Quiz — question ${STATE.currentQuiz + 1} sur ${QUIZ.length}`);
+  frTypo($('quizCard'));
+  window.scrollTo({ top: 0 });
+}
+
+function paintQuizOptions(locked, verdict) {
+  const q = QUIZ[STATE.currentQuiz];
+  const box = $('quizOptions');
+  const focused = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.opt : undefined;
+  box.innerHTML = q.options.map((o, i) => {
+    let cls = 'qcm-option';
+    if (QUIZ_SEL === i) cls += ' selected';
+    if (locked) cls += ' locked';
+    if (locked && QUIZ_SEL === i) cls += verdict ? ' is-correct' : ' is-wrong';
+    return `<button type="button" class="${cls}" data-opt="${i}" aria-pressed="${QUIZ_SEL === i}"${locked ? ' aria-disabled="true"' : ''}><span class="opt-mark" aria-hidden="true"></span><span>${esc(o)}</span></button>`;
+  }).join('');
+  if (!locked) {
+    box.querySelectorAll('.qcm-option').forEach(el => el.onclick = () => {
+      if (STATE.quizAnswered[STATE.currentQuiz]) return;
+      QUIZ_SEL = parseInt(el.dataset.opt, 10);
+      paintQuizOptions(false, null);
+      $('btnQuiz').disabled = false;
+    });
+  }
+  frTypo(box);
+  if (!locked && focused !== undefined) {
+    const el = box.querySelector(`[data-opt="${focused}"]`);
+    if (el) el.focus();
+  }
+}
+
+function validateQuiz() {
+  const idx = STATE.currentQuiz;
+  if (QUIZ_SEL === null || STATE.quizAnswered[idx]) return;
+  const q = QUIZ[idx];
+  const correct = QUIZ_SEL === q.correct;
+  const points = correct ? 1 : 0;
+  const timeTaken = secondsSince(STATE.questionStartTime);
+  STATE.quizPoints += points;
+  STATE.quizAnswered[idx] = true;
+
+  // Étape 3 — une ligne par réponse au quiz
+  sendAnswer({
+    volet: 'Quiz',
+    partie: `Quiz — ${q.id}`,
+    question: q.text,
+    reponse_eleve: q.options[QUIZ_SEL],
+    reponse_correcte: q.options[q.correct],
+    points: points,
+    points_max: q.points,
+    tentative: 1,
+    temps_secondes: timeTaken
+  });
+  creditComp(q, points, 1, timeTaken, false);
+
+  paintQuizOptions(true, correct);
+  setFeedback('quizFeedback', correct ? 'ok' : 'ko', correct ? 'Correct.' : 'Pas correct.');
+  const last = idx === QUIZ.length - 1;
+  const b = $('btnQuiz');
+  b.textContent = last ? 'Terminer le quiz' : 'Question suivante';
+  b.disabled = false;
+  b.onclick = nextQuiz;
+  b.focus({ preventScroll: true });
+  updateProgress();
+}
+
+function nextQuiz() {
+  STATE.currentQuiz++;
+  if (STATE.currentQuiz < QUIZ.length) renderQuiz();
+  else finishQuiz();
+}
+
+function finishQuiz() {
+  // Étape 4 — ligne récapitulative du quiz
+  sendAnswer({
+    volet: 'Quiz',
+    partie: 'TOTAL — Quiz',
+    question: '',
+    reponse_eleve: '',
+    reponse_correcte: '',
+    points: STATE.quizPoints,
+    points_max: 10,                                 // TOUJOURS 10 pour le quiz
+    tentative: 1,
+    temps_secondes: secondsSince(STATE.startTime)
+  });
+  setStep('Quiz terminé');
+  show('screenTransition');
+  frTypo($('screenTransition'));
+  $('btnStartEx').focus({ preventScroll: true });
+}
+
+$('btnStartEx').addEventListener('click', () => {
+  STATE.exStart = Date.now();
+  STATE.currentEx = 0;
+  show('screenExercise');
+  renderExercise();
+});
+
+// ============================================================
+// VOLET EXERCICES
+// ============================================================
+let EXUI = { pick: null, place: {}, sel: [], qcmPick: null, vals: {}, locked: false };
+let LAST_SUBMITTED = null;   // évite de valider deux fois exactement la même réponse
+
+// ---------- Documents « papier » : facture et note de crédit ----------
+// cell(id) fournit la case à compléter ; sans champ, le montant imprimé est affiché.
+function renderInvoice(d, cell) {
+  const amount = x => x.f ? cell(x.f) : `<span class="amt">${eur(x.v != null ? x.v : x.tot)}</span>`;
+  const rate = !!d.showRate;
+  const head = `<div class="p-top">
+      <div class="p-issuer"><div>
+        <div class="p-issuer-name">${esc(d.vendor.name)}</div>
+        ${d.vendor.addr.map(a => `<div>${esc(a)}</div>`).join('')}
+        <span class="p-legal">${esc(d.vendor.legal)}</span></div></div>
+      <div class="p-docbox">
+        <div class="p-docname">${esc(d.kind)}</div>
+        <table class="p-meta">${d.meta.map(([k, v]) => `<tr><th>${esc(k)}</th><td>${esc(v)}</td></tr>`).join('')}</table>
+      </div>
+    </div>
+    <div class="p-rule"></div>
+    <div class="p-address-row"><div class="p-address">
+      <span class="p-addr-lbl">Client</span>
+      <strong>${esc(d.client.name)}</strong><br>${d.client.addr.map(esc).join('<br>')}${d.client.extra ? `<span class="p-legal">${esc(d.client.extra)}</span>` : ''}
+    </div></div>
+    ${d.cond ? `<p class="p-cond"><strong>Conditions :</strong> ${esc(d.cond)}</p>` : ''}`;
+  const rows = d.lines.map(l => `<tr><td class="mono">${esc(l.ref)}</td><td>${esc(l.d)}</td>` +
+    `<td class="num">${NF0.format(l.q)}</td><td class="num"><span class="amt">${eur(l.pu)}</span></td>` +
+    (rate ? `<td class="num">${l.rate} %</td>` : '') + `<td class="num">${amount(l)}</td></tr>`).join('');
+  const table = `<div class="p-table-wrap"><table class="p-table">
+      <thead><tr><th>Réf.</th><th>Désignation</th><th class="num">Qté</th><th class="num">Prix unitaire</th>${rate ? '<th class="num">TVA</th>' : ''}<th class="num">Total</th></tr></thead>
+      <tbody>${rows}</tbody></table></div>`;
+  const extras = d.extras
+    ? `<table class="p-extras">${d.extras.map(x => `<tr><td>${esc(x.d)}</td><td class="num"><span class="amt">${eur(x.v)}</span></td></tr>`).join('')}</table>` : '';
+  const recap = d.recap
+    ? `<table class="p-recap">${d.recap.map(r => `<tr${r.strong ? ' class="strong"' : ''}><td class="op">${esc(r.op || '')}</td><td>${esc(r.lbl)}</td><td class="num">${amount(r)}</td></tr>`).join('')}</table>` : '';
+  const rr = d.recapRates;
+  const recapRates = rr ? `<div class="p-table-wrap"><table class="p-recap-rates">
+      <thead><tr><th>Taux de TVA</th><th class="num">Base imposable</th><th class="num">Montant TVA</th></tr></thead>
+      <tbody>${rr.rows.map(r => `<tr><th>${esc(r.lbl)}</th><td class="num">${cell(r.b)}</td><td class="num">${cell(r.t)}</td></tr>`).join('')}</tbody>
+      <tfoot><tr><th colspan="2">${esc(rr.total.lbl)}</th><td class="num">${cell(rr.total.f)}</td></tr></tfoot>
+    </table></div>` : '';
+  const foot = d.foot ? `<p class="p-foot">${esc(d.foot)}</p>` : '';
+  return `<article class="paper">${head}${table}${extras}${recap}${recapRates}${foot}</article>`;
+}
+
+// ---------- Carte d’exercice ----------
+function exPosition(ex) {
+  const same = EXERCISES.filter(e => e.theme === ex.theme);
+  return { i: same.indexOf(ex) + 1, n: same.length };
+}
+
+function renderExercise() {
+  const ex = EXERCISES[STATE.currentEx];
+  EXUI = { pick: null, place: {}, sel: [], qcmPick: null, vals: {}, locked: false };
+  LAST_SUBMITTED = null;
+  STATE.questionStartTime = Date.now();
+  const pos = exPosition(ex);
+  const mt = maxTentatives(ex);
+
+  $('exBanner').textContent = ex.theme;                      // simple intitulé (autorisé)
+  $('exCounter').textContent = `Question ${pos.i} sur ${pos.n}`;
+  $('exPointsChip').textContent = `${ex.points} points`;
+  $('exTriesChip').textContent = mt === 1 ? '1 tentative' : `${mt} tentatives`;
+
+  const ctx = $('exContext');
+  ctx.innerHTML = ex.context || '';
+  ctx.hidden = !ex.context;
+
+  const side = !!ex.sideDoc;
+  $('exLayout').classList.toggle('has-docs', side);
+  $('exLayout').classList.toggle('grid-mode', ex.type === 'grid');
+  $('exDocs').hidden = !side;
+  $('exDocs').innerHTML = side
+    ? `<div class="doc-block"><p class="doc-label">${esc(ex.sideLabel || 'Document')}</p>${renderInvoice(ex.sideDoc, () => '')}</div>`
+    : '';
+  $('exDocs').scrollTop = 0;
+
+  $('exText').textContent = ex.text;
+  $('exSub').textContent = ex.qsub || '';
+  setFeedback('exFeedback', null);
+  const skip = $('btnSkip');
+  skip.textContent = 'Passer'; skip.classList.remove('confirm'); delete skip.dataset.confirm;
+
+  setStep(`${ex.theme.split(' — ')[0]} — question ${pos.i} sur ${pos.n}`);
+  paintExercise(ex);
+  frTypo($('screenExercise'));
+  syncHeaderHeight();
+  window.scrollTo({ top: 0 });
+}
+
+function answerSignature() {
+  return JSON.stringify([EXUI.place, EXUI.sel.slice().sort((a, b) => a - b), EXUI.qcmPick, EXUI.vals]);
+}
+
+function focusKey() {
+  const a = document.activeElement;
+  if (!a || !$('exBody').contains(a)) return null;
+  for (const k of ['tag', 'placed', 'bin', 'seg', 'multi', 'opt', 'field']) {
+    if (a.dataset && a.dataset[k] !== undefined) return `[data-${k}="${a.dataset[k]}"]`;
+  }
+  return null;
+}
+
+function paintExercise(ex) {
+  const body = $('exBody');
+  const keep = focusKey();
+  let html = '';
+  if (ex.type === 'qcm')     html = renderQcmEx(ex);
+  if (ex.type === 'multi')   html = renderMulti(ex);
+  if (ex.type === 'erreurs') html = renderErreurs(ex);
+  if (ex.type === 'classer') html = renderClasser(ex);
+  if (ex.type === 'numeric') html = renderNumeric(ex);
+  if (ex.type === 'grid')    html = renderGrid(ex);
+  body.innerHTML = html;
+  body.classList.toggle('locked', EXUI.locked);
+  bindExercise(ex);
+  frTypo(body);
+  if (keep && !EXUI.locked) {
+    const el = body.querySelector(keep);
+    if (el) { el.focus({ preventScroll: true }); if (el.tagName === 'INPUT') el.select(); }   // la saisie remplace l’ancienne réponse
+  }
+  updateExButtons(ex);
+}
+
+function renderQcmEx(ex) {
+  const verdict = STATE.exVerdict[STATE.currentEx];
+  return `<div class="options">${ex.options.map((o, i) => {
+    let cls = 'qcm-option';
+    if (EXUI.qcmPick === i) cls += ' selected';
+    if (EXUI.locked) cls += ' locked';
+    if (EXUI.locked && EXUI.qcmPick === i && (verdict === 'ok' || verdict === 'ko')) cls += verdict === 'ok' ? ' is-correct' : ' is-wrong';
+    return `<button type="button" class="${cls}" data-opt="${i}" aria-pressed="${EXUI.qcmPick === i}"${EXUI.locked ? ' aria-disabled="true"' : ''}><span class="opt-mark" aria-hidden="true"></span><span>${esc(o)}</span></button>`;
+  }).join('')}</div>`;
+}
+
+function renderMulti(ex) {
+  return `<div class="multi-list">${ex.options.map((o, i) => {
+    const on = EXUI.sel.includes(i);
+    return `<button type="button" class="multi-option${on ? ' selected' : ''}${EXUI.locked ? ' locked' : ''}" data-multi="${i}" aria-pressed="${on}"${EXUI.locked ? ' aria-disabled="true"' : ''}><span class="box" aria-hidden="true"></span><span>${esc(o)}</span></button>`;
+  }).join('')}</div>`;
+}
+
+function renderErreurs(ex) {
+  const seg = (s, i) => {
+    const on = EXUI.sel.includes(i);
+    return `<span class="seg${on ? ' marked' : ''}${EXUI.locked ? ' locked' : ''}" data-seg="${i}" role="button" tabindex="${EXUI.locked ? -1 : 0}" aria-pressed="${on}">${esc(s.t)}</span>`;
+  };
+  const d = ex.doc;
+  if (d.style === 'memo') {
+    return `<div class="memo">
+      <div class="memo-head"><span class="memo-title">${esc(d.titre)}</span><span class="memo-author">${esc(d.auteur)}</span></div>
+      <ul class="memo-list">${ex.segments.map((s, i) => `<li>${seg(s, i)}</li>`).join('')}</ul></div>`;
+  }
+  const paras = [];
+  ex.segments.forEach((s, i) => {
+    if (s.p || !paras.length) paras.push([]);
+    paras[paras.length - 1].push(seg(s, i));
+  });
+  return `<div class="rapport">
+    <div class="rapport-head"><div><b>De :</b> ${esc(d.de)}</div><div><b>À :</b> ${esc(d.a)}</div><div><b>Objet :</b> ${esc(d.objet)}</div></div>
+    ${d.salut ? `<p>${esc(d.salut)}</p>` : ''}
+    ${paras.map(p => `<p>${p.join(' ')}</p>`).join('')}
+    ${d.formule ? `<p>${esc(d.formule)}</p>` : ''}
+    <div class="rapport-sign">${esc(d.signature)}</div></div>`;
+}
+
+/* RENDU — data-bin sur la COLONNE, pas sur la zone intérieure (13.13) */
+function renderClasser(ex) {
+  const placedIdx = Object.keys(EXUI.place).map(Number);
+  const reserve = ex.items.map((it, i) => placedIdx.includes(i) ? '' :
+    `<button type="button" class="tag ${EXUI.pick === i ? 'picked' : ''}" data-tag="${i}" aria-pressed="${EXUI.pick === i}">${esc(it.t)}</button>`).join('');
+  const reserveHTML = reserve.replace(/\s/g, '') === ''
+    ? '<span class="reserve-empty">Toutes les étiquettes sont placées.</span>' : reserve;
+
+  const droppable = (EXUI.pick !== null && !EXUI.locked) ? 'droppable' : '';
+  const bins = ex.bins.map((b, bi) => {
+    const inside = ex.items.map((it, i) => EXUI.place[i] === bi
+      ? `<button type="button" class="tag placed" data-placed="${i}">${esc(it.t)}</button>` : '').join('');
+    const content = inside === '' ? '<span class="bin-empty">Dépose ici</span>' : inside;
+    return `<div class="bin ${droppable}" data-bin="${bi}" role="button" tabindex="${EXUI.locked ? -1 : 0}" aria-label="Colonne ${esc(b.name)}">
+        <div class="bin-title">${esc(b.name)}</div>
+        <div class="bin-drop">${content}</div>
+      </div>`;
+  }).join('');
+
+  return `<div class="reserve" id="reserve">${reserveHTML}</div><div class="bins">${bins}</div>`;
+}
+
+/* Saisie numérique — placeholder neutre, jamais la réponse (4.2) */
+function renderNumeric(ex) {
+  const v = EXUI.vals.n != null ? EXUI.vals.n : '';
+  return `<div class="num-row">
+      <input type="text" inputmode="decimal" class="num-input" data-field="n" value="${esc(v)}" placeholder="${ex.unit === '€' ? '0,00' : 'Nombre'}" autocomplete="off" spellcheck="false" aria-label="Ta réponse"${EXUI.locked ? ' disabled' : ''}>
+      ${ex.unit ? `<span class="num-unit">${esc(ex.unit)}</span>` : ''}
+    </div>
+    <p class="num-hint">Écris seulement le nombre, sans séparateur de milliers. Point ou virgule acceptés.</p>`;
+}
+
+/* Facture à compléter — chaque case jaune est un champ ; placeholder neutre */
+function cellInput(ex, id) {
+  const f = ex.fields.find(x => x.id === id);
+  const v = EXUI.vals[id] != null ? EXUI.vals[id] : '';
+  return `<input type="text" inputmode="decimal" class="cell-input" data-field="${esc(id)}" value="${esc(v)}" placeholder="0,00" autocomplete="off" spellcheck="false" aria-label="${esc(f ? f.label : id)}"${EXUI.locked ? ' disabled' : ''}>`;
+}
+
+function renderGrid(ex) {
+  const cell = id => cellInput(ex, id);
+  const after = (ex.doc.after || []).map(a =>
+    `<div class="after-box"><span>${esc(a.lbl)}</span>${cell(a.f)}</div>`).join('');
+  return `${renderInvoice(ex.doc, cell)}${after}
+    <p class="grid-hint">Le bouton « Valider » devient actif quand toutes les cases jaunes sont remplies.</p>`;
+}
+
+function toggleSel(i) {
+  const k = EXUI.sel.indexOf(i);
+  if (k >= 0) EXUI.sel.splice(k, 1); else EXUI.sel.push(i);
+}
+
+function nudgeReserve() {
+  const r = $('reserve'); if (!r) return;
+  r.classList.add('nudge');
+  setTimeout(() => r.classList.remove('nudge'), 650);
+}
+
+/* BINDINGS — EXUI.locked testé dans TOUS les gestionnaires (13.11) */
+function bindExercise(ex) {
+  const body = $('exBody');
+  const keyAsClick = el => {
+    el.onkeydown = e => {
+      if ((e.key === 'Enter' || e.key === ' ') && e.target === el) { e.preventDefault(); el.click(); }
+    };
+  };
+
+  if (ex.type === 'qcm') {
+    body.querySelectorAll('.qcm-option').forEach(el => el.onclick = () => {
+      if (EXUI.locked) return;
+      EXUI.qcmPick = parseInt(el.dataset.opt, 10);
+      paintExercise(ex);
+    });
+  }
+
+  if (ex.type === 'multi') {
+    body.querySelectorAll('.multi-option').forEach(el => el.onclick = () => {
+      if (EXUI.locked) return;
+      toggleSel(parseInt(el.dataset.multi, 10));
+      paintExercise(ex);
+    });
+  }
+
+  if (ex.type === 'erreurs') {
+    body.querySelectorAll('.seg[data-seg]').forEach(el => {
+      el.onclick = () => {
+        if (EXUI.locked) return;
+        toggleSel(parseInt(el.dataset.seg, 10));
+        paintExercise(ex);
+      };
+      keyAsClick(el);
+    });
+  }
+
+  if (ex.type === 'classer') {
+    body.querySelectorAll('.reserve .tag[data-tag]').forEach(el => el.onclick = () => {
+      if (EXUI.locked) return;
+      const i = parseInt(el.dataset.tag, 10);
+      EXUI.pick = (EXUI.pick === i) ? null : i;
+      paintExercise(ex);
+    });
+    document.querySelectorAll('#exBody .bin[data-bin]').forEach(el => {
+      el.onclick = () => {
+        if (EXUI.locked) return;
+        if (EXUI.pick === null) { nudgeReserve(); return; }
+        EXUI.place[EXUI.pick] = parseInt(el.dataset.bin, 10);
+        EXUI.pick = null;
+        paintExercise(ex);
+      };
+      keyAsClick(el);
+    });
+    /* Étiquette déjà placée : sans sélection → retour en réserve ;
+       avec sélection → on laisse le clic remonter à la colonne (dépôt) */
+    document.querySelectorAll('#exBody .tag[data-placed]').forEach(el => {
+      el.onclick = (evt) => {
+        if (EXUI.locked) return;
+        if (EXUI.pick !== null) return;        // ← surtout pas de stopPropagation ici
+        evt.stopPropagation();
+        delete EXUI.place[parseInt(el.dataset.placed, 10)];
+        paintExercise(ex);
+      };
+    });
+  }
+
+  if (ex.type === 'numeric' || ex.type === 'grid') {
+    // Saisie libre : on mémorise sans redessiner (le curseur reste dans la case).
+    // Entrée passe à la case suivante ; sur la dernière, elle valide.
+    const inputs = [...body.querySelectorAll('input[data-field]')];
+    inputs.forEach((inp, k) => {
+      inp.oninput = () => {
+        if (EXUI.locked) return;
+        EXUI.vals[inp.dataset.field] = inp.value;
+        updateExButtons(ex);
+      };
+      inp.onkeydown = e => {
+        if (e.key !== 'Enter' || EXUI.locked) return;
+        e.preventDefault();
+        if (k < inputs.length - 1) inputs[k + 1].focus();
+        else if (!$('btnValidate').disabled) validateExercise();
+      };
+    });
+  }
+}
+
+function checkExercise() {
+  const ex = EXERCISES[STATE.currentEx];
+  let ready = false;
+  if (ex.type === 'qcm')     ready = EXUI.qcmPick !== null;
+  if (ex.type === 'multi')   ready = EXUI.sel.length > 0;
+  if (ex.type === 'erreurs') ready = true;                     // « (aucune) » est une réponse possible
+  if (ex.type === 'classer') ready = Object.keys(EXUI.place).length === ex.items.length;
+  if (ex.type === 'numeric') ready = Number.isFinite(parseAmount(EXUI.vals.n));
+  if (ex.type === 'grid')    ready = ex.fields.every(f => Number.isFinite(parseAmount(EXUI.vals[f.id])));
+  return { ready };
+}
+
+function updateExButtons(ex) {
+  const idx = STATE.currentEx;
+  const closed = STATE.exClosed[idx];
+  const mt = maxTentatives(ex);
+  const tries = STATE.exAttempts[idx];
+  const unchanged = LAST_SUBMITTED !== null && LAST_SUBMITTED === answerSignature();
+  $('btnValidate').hidden = closed;
+  $('btnSkip').hidden = closed;
+  $('btnNextEx').hidden = !closed;
+  $('btnValidate').disabled = closed || !checkExercise().ready || unchanged;
+  $('btnValidate').textContent = (ex.type === 'erreurs' && EXUI.sel.length === 0) ? 'Valider sans rien signaler' : 'Valider';
+  $('btnNextEx').textContent = (idx === EXERCISES.length - 1) ? 'Voir mon bilan' : 'Question suivante';
+  $('exTryInfo').textContent = closed ? '' : (mt === 1 ? 'Une seule tentative' : `Tentative ${Math.min(tries + 1, mt)} sur ${mt}`);
+}
+
+// ---------- Validation par type : verdict, décompte, chaînes pour le Sheet ----------
+function validateQcmEx(ex) {
+  const correct = EXUI.qcmPick === ex.correct;
+  return { correct, okCount: correct ? 1 : 0, total: 1,
+           studentStr: ex.options[EXUI.qcmPick], correctStr: ex.options[ex.correct] };
+}
+
+function validateMulti(ex) {
+  const exp = ex.multi;
+  const sel = EXUI.sel.slice().sort((a, b) => a - b);
+  const good = sel.filter(i => exp.includes(i)).length;
+  const bad = sel.length - good;
+  const net = Math.max(0, good - bad);
+  const correct = good === exp.length && bad === 0;
+  return { correct, okCount: net, total: exp.length,
+           studentStr: `[${net}/${exp.length} corrects] ` + (sel.length ? sel.map(i => ex.options[i]).join(' | ') : '(aucune)'),
+           correctStr: exp.map(i => ex.options[i]).join(' | ') };
+}
+
+function validateErreurs(ex) {
+  const attendus = ex.segments.map((s, i) => s.err ? i : -1).filter(i => i >= 0);
+  const choisis  = EXUI.sel.slice().sort((a, b) => a - b);
+  const correct  = choisis.length === attendus.length
+                && attendus.every((i, k) => choisis[k] === i);
+  const good = choisis.filter(i => attendus.includes(i)).length;
+  const net = Math.max(0, good - (choisis.length - good));
+  const fmt = list => list.length ? list.map(i => 'P' + (i + 1)).join(', ') : '(aucune)';
+  return { correct, okCount: net, total: attendus.length,
+           studentStr: `[${net}/${attendus.length} corrects] ` + fmt(choisis), correctStr: fmt(attendus) };
+}
+
+function validateClasser(ex) {
+  const order = ex.items.map((it, i) => ({ it, i })).sort((a, b) => a.it.k - b.it.k);
+  let ok = 0;
+  const parts = [], cparts = [];
+  order.forEach(({ it, i }) => {
+    const b = EXUI.place[i];
+    if (b === it.b) ok++;
+    parts.push(`${it.t} → ${b !== undefined ? ex.bins[b].name : '?'}`);
+    cparts.push(`${it.t} → ${ex.bins[it.b].name}`);
+  });
+  return { correct: ok === ex.items.length, okCount: ok, total: ex.items.length,
+           studentStr: `[${ok}/${ex.items.length} corrects] ` + parts.join(' | '), correctStr: cparts.join(' | ') };
+}
+
+function validateNumeric(ex) {
+  const raw = String(EXUI.vals.n == null ? '' : EXUI.vals.n).trim();
+  const v = parseAmount(raw);
+  const correct = Number.isFinite(v) && Math.abs(v - ex.answer) <= ex.tolerance + 1e-9;
+  return { correct, okCount: correct ? 1 : 0, total: 1,
+           studentStr: Number.isFinite(v) ? String(v) : raw, correctStr: String(ex.answer) };
+}
+
+// Report d’erreur : une case fausse au regard de la réponse attendue est tout de même
+// juste si elle applique correctement l’opération aux montants que l’élève a lui-même
+// écrits dans les cases précédentes (champ « calc »). Une même erreur n’est donc
+// sanctionnée qu’une fois. Le report n’est accordé que si ces cases contiennent un
+// montant positif : une chaîne bâtie sur des zéros ne rapporte rien.
+// Le verdict « correct » exige, lui, toutes les cases exactes.
+const calcRefs = expr => (expr.match(/[A-Za-z_]\w*/g) || []).filter(n => n !== 'r');
+function evalCalc(expr, val) {
+  const names = Object.keys(val);
+  try {
+    const fn = new Function(...names, 'r', `"use strict"; return (${expr});`);
+    const res = fn(...names.map(n => val[n]), x => Math.round((x + 1e-9) * 100) / 100);
+    return typeof res === 'number' ? res : NaN;
+  } catch (e) { return NaN; }
+}
+
+function validateGrid(ex) {
+  const val = {};
+  ex.fields.forEach(f => { val[f.id] = parseAmount(EXUI.vals[f.id]); });
+  let ok = 0, allExact = true;
+  const parts = [], cparts = [];
+  ex.fields.forEach(f => {
+    const v = val[f.id];
+    const exact = Number.isFinite(v) && Math.abs(v - f.ans) <= TOL_GRID + 1e-9;
+    let report = false;
+    if (!exact && f.calc && Number.isFinite(v) && v > 0
+        && calcRefs(f.calc).every(n => Number.isFinite(val[n]) && val[n] > 0)) {
+      const ref = evalCalc(f.calc, val);
+      report = Number.isFinite(ref) && Math.abs(v - ref) <= TOL_GRID + 1e-9;
+    }
+    if (exact || report) ok++;
+    if (!exact) allExact = false;
+    parts.push(`${f.label}: ${fmtNum(v)} ${exact ? '✓' : report ? '✓ report' : '✗'}`);
+    cparts.push(`${f.label}: ${fmtNum(f.ans)}`);
+  });
+  return { correct: allExact, okCount: ok, total: ex.fields.length,
+           studentStr: `[${ok}/${ex.fields.length} corrects] ` + parts.join(' | '), correctStr: cparts.join(' | ') };
+}
+
+function validateByType(ex) {
+  if (ex.type === 'qcm')     return validateQcmEx(ex);
+  if (ex.type === 'multi')   return validateMulti(ex);
+  if (ex.type === 'erreurs') return validateErreurs(ex);
+  if (ex.type === 'classer') return validateClasser(ex);
+  if (ex.type === 'numeric') return validateNumeric(ex);
+  if (ex.type === 'grid')    return validateGrid(ex);
+  return { correct: false, okCount: 0, total: 1, studentStr: '', correctStr: '' };
+}
+
+function expectedString(ex) {
+  if (ex.type === 'qcm')     return ex.options[ex.correct];
+  if (ex.type === 'multi')   return ex.multi.map(i => ex.options[i]).join(' | ');
+  if (ex.type === 'erreurs') return ex.segments.map((s, i) => s.err ? 'P' + (i + 1) : null).filter(Boolean).join(', ');
+  if (ex.type === 'classer') return ex.items.slice().sort((a, b) => a.k - b.k).map(it => `${it.t} → ${ex.bins[it.b].name}`).join(' | ');
+  if (ex.type === 'numeric') return String(ex.answer);
+  if (ex.type === 'grid')    return ex.fields.map(f => `${f.label}: ${fmtNum(f.ans)}`).join(' | ');
+  return '';
+}
+
+// Notation partielle obligatoire (6.8) : qcm et numeric restent binaires
+function pointsFor(ex, r) {
+  if (r.correct) return ex.points;
+  if (ex.type === 'qcm' || ex.type === 'numeric') return 0;
+  return pointsPartiels(r.okCount, r.total, ex.points);
+}
+
+function lockExInputs() {
+  EXUI.locked = true;
+  EXUI.pick = null;
+  document.querySelectorAll('.question-card input').forEach(inp => inp.disabled = true);
+  document.querySelectorAll('.question-card select').forEach(sel => sel.disabled = true);
+  document.querySelectorAll('.qcm-option').forEach(el => el.classList.add('locked'));
+}
+
+function validateExercise() {
+  const idx = STATE.currentEx;
+  const ex = EXERCISES[idx];
+  if (STATE.exClosed[idx] || EXUI.locked) return;
+  if (!checkExercise().ready) return;
+  if (LAST_SUBMITTED !== null && LAST_SUBMITTED === answerSignature()) return;
+
+  const r = validateByType(ex);
+  STATE.exAttempts[idx] += 1;
+  const attempt = STATE.exAttempts[idx];
+  const pts = pointsFor(ex, r);
+  STATE.exBest[idx] = Math.max(STATE.exBest[idx], pts);   // meilleure tentative conservée
+  const timeTaken = secondsSince(STATE.questionStartTime);
+
+  // Étape 5 — une ligne par tentative, décompte en préfixe (invisible pour l’élève)
+  sendAnswer({
+    volet: 'Exercice',
+    partie: ex.partie,
+    question: ex.text,
+    reponse_eleve: r.studentStr,
+    reponse_correcte: r.correctStr,
+    points: pts,
+    points_max: ex.points,
+    tentative: attempt,
+    temps_secondes: timeTaken
+  });
+
+  const mt = maxTentatives(ex);
+  if (r.correct) {
+    STATE.exVerdict[idx] = 'ok';
+    closeExercise(ex, attempt, timeTaken, false);
+    setFeedback('exFeedback', 'ok', 'Correct.');
+  } else if (attempt >= mt) {
+    STATE.exVerdict[idx] = 'ko';
+    closeExercise(ex, attempt, timeTaken, false);
+    setFeedback('exFeedback', 'ko', mt === 1
+      ? 'Pas correct. Cette question ne comptait qu’une seule tentative.'
+      : 'Pas correct. Tu as utilisé tes deux tentatives.');
+  } else {
+    // Retour strictement binaire : ni surlignage, ni nombre d’items justes (16.6)
+    LAST_SUBMITTED = answerSignature();
+    EXUI.pick = null;
+    setFeedback('exFeedback', 'retry', 'Pas correct. Il te reste une tentative.');
+    paintExercise(ex);
+  }
+  $('btnNextEx').hidden || $('btnNextEx').focus({ preventScroll: true });
+}
+
+function closeExercise(ex, attempt, timeTaken, abandon) {
+  const idx = STATE.currentEx;
+  STATE.exClosed[idx] = true;
+  STATE.exAnswered[idx] = true;
+  STATE.exPoints += STATE.exBest[idx];
+  creditComp(ex, STATE.exBest[idx], attempt, timeTaken, abandon);
+  lockExInputs();
+  paintExercise(ex);
+  updateProgress();
+}
+
+function skipExercise() {
+  const idx = STATE.currentEx;
+  const ex = EXERCISES[idx];
+  if (STATE.exClosed[idx]) return;
+  const btn = $('btnSkip');
+  if (!btn.dataset.confirm) {                      // premier clic : demande de confirmation
+    btn.dataset.confirm = '1';
+    btn.classList.add('confirm');
+    btn.textContent = 'Confirmer : passer';
+    setTimeout(() => {
+      if (btn.dataset.confirm) { delete btn.dataset.confirm; btn.classList.remove('confirm'); btn.textContent = 'Passer'; }
+    }, 4000);
+    return;
+  }
+  delete btn.dataset.confirm;
+  btn.classList.remove('confirm');
+  btn.textContent = 'Passer';
+
+  const n = STATE.exAttempts[idx];
+  const timeTaken = secondsSince(STATE.questionStartTime);
+  // Étape 6 — question passée
+  sendAnswer({
+    volet: 'Exercice',
+    partie: ex.partie,
+    question: ex.text,
+    reponse_eleve: n ? `[Passé après ${n} tentative${n > 1 ? 's' : ''}]` : '[Passé]',
+    reponse_correcte: expectedString(ex),
+    points: 0,
+    points_max: ex.points,
+    tentative: Math.max(1, n),
+    temps_secondes: timeTaken
+  });
+  STATE.exVerdict[idx] = 'skip';
+  closeExercise(ex, n, timeTaken, true);          // les points partiels de la meilleure tentative restent acquis
+  setFeedback('exFeedback', 'skip', 'Question passée.');
+  $('btnNextEx').focus({ preventScroll: true });
+}
+
+function nextExercise() {
+  STATE.currentEx++;
+  if (STATE.currentEx < EXERCISES.length) renderExercise();
+  else finishEvaluation();
+}
+
+$('btnValidate').addEventListener('click', validateExercise);
+$('btnSkip').addEventListener('click', skipExercise);
+$('btnNextEx').addEventListener('click', nextExercise);
+
+// ============================================================
+// FIN DE L’ÉVALUATION — étapes 7, 8, 8 bis et 9
+// ============================================================
+function finishEvaluation() {
+  if (STATE.finished) return;
+  STATE.finished = true;
+  clearInterval(STATE.timerInterval);
+  const totalTime = secondsSince(STATE.startTime);
+  const exTime = secondsSince(STATE.exStart);
+
+  // Étape 7 — TOTAL — Exercices
+  sendAnswer({
+    volet: 'Exercice',
+    partie: 'TOTAL — Exercices',
+    question: '',
+    reponse_eleve: '',
+    reponse_correcte: '',
+    points: STATE.exPoints,
+    points_max: 40,                                 // barème 50 = 10 (quiz) + 40 (exercices)
+    tentative: 1,
+    temps_secondes: exTime
+  });
+
+  // Étape 8 — TOTAL — Évaluation
+  const totalPoints = STATE.quizPoints + STATE.exPoints;
+  sendAnswer({
+    volet: 'Évaluation',
+    partie: 'TOTAL — Évaluation',
+    question: '',
+    reponse_eleve: '',
+    reponse_correcte: '',
+    points: totalPoints,
+    points_max: CONFIG.POINTS_MAX,
+    tentative: 1,
+    temps_secondes: totalTime
+  });
+
+  // Étape 8 bis — une ligne Synthèse par compétence (16.10)
+  Object.entries(STATE.comp).forEach(([code, c]) => {
+    if (c.nb === 0) return;
+    postData({
+      action: 'submit_answer',
+      email: STATE.email, classe: STATE.classe, application: CONFIG.APP_NAME,
+      volet: 'Synthèse',
+      partie: `${code} — ${COMPETENCES[code].libelle}`,
+      question: String(c.nb),
+      reponse_eleve: niveauComp(c),
+      reponse_correcte: '',
+      points: c.pts, points_max: c.max,
+      tentative: c.reussi1,
+      temps_secondes: c.temps,
+      session: STATE.session
+    });
+  });
+
+  // Étape 9 — marquer l’évaluation comme terminée
+  postData({
+    action: 'complete_eval',
+    email: STATE.email,
+    app: CONFIG.APP_NAME
+  });
+
+  guardUnload(false);
+  setStep('Bilan');
+  renderSummary(totalPoints, totalTime);
+  show('screenSummary');
+
+  POST_QUEUE.then(() => {
+    const s = $('sendStatus');
+    if (POST_ERRORS === 0) {
+      s.className = 'send-status ok';
+      s.textContent = 'Tes résultats ont été transmis à ton professeur. La correction détaillée se fera en classe.';
+    } else {
+      s.className = 'send-status ko';
+      s.textContent = 'Une partie de tes résultats n’a pas pu être envoyée. Préviens ton professeur avant de fermer cette page.';
+    }
+    frTypo(s);
+  });
+}
+
+// ============================================================
+// ÉCRAN DE SYNTHÈSE (16.9) — niveaux et priorités, jamais de bonne réponse
+// ============================================================
+const NIVEAUX = {
+  'Acquis':     { cls: 'lv-ok',  icon: '✔', label: 'Acquis',                 phrase: 'Tu maîtrises.' },
+  'En cours':   { cls: 'lv-mid', icon: '~', label: 'En cours d’acquisition', phrase: 'Tu comprends, il te manque l’entraînement.' },
+  'Non acquis': { cls: 'lv-ko',  icon: '✗', label: 'Non acquis',             phrase: 'À reprendre avec le professeur.' },
+  'Indice':     { cls: 'lv-na',  icon: '·', label: 'Indice',                 phrase: 'Trop peu de questions pour conclure.' }
+};
+
+function renderSummary(totalPoints, totalTime) {
+  $('totalScore').textContent = fmtPts(totalPoints);
+  $('quizScore').textContent = `${fmtPts(STATE.quizPoints)} / 10`;
+  document.getElementById('exScore').textContent = `${fmtPts(STATE.exPoints)} / 40`;
+  $('timeScore').textContent = hms(totalTime);
+
+  const rows = [], prios = [];
+  Object.entries(STATE.comp).forEach(([code, c]) => {
+    if (c.nb === 0) return;
+    const lv = niveauComp(c);
+    const N = NIVEAUX[lv];
+    const pct = c.max ? Math.round(100 * c.pts / c.max) : 0;
+    rows.push(`<div class="comp-row">
+      <div><div class="comp-name">${esc(COMPETENCES[code].libelle)}</div><div class="comp-phrase">${esc(N.phrase)}</div></div>
+      <div class="comp-side">
+        <div class="comp-bar" aria-hidden="true"><span style="width:${pct}%"></span></div>
+        <div class="comp-meta"><span class="comp-pts">${fmtPts(c.pts)} / ${fmtPts(c.max)} pts</span><span class="pill ${N.cls}"><i aria-hidden="true">${N.icon}</i>${esc(N.label)}</span></div>
+      </div></div>`);
+    if (lv === 'Non acquis' || lv === 'En cours') prios.push({ code, lv, ratio: c.max ? c.pts / c.max : 0 });
+  });
+  $('compList').innerHTML = rows.join('');
+
+  prios.sort((a, b) => a.lv === b.lv ? a.ratio - b.ratio : (a.lv === 'Non acquis' ? -1 : 1));
+  $('prioList').innerHTML = prios.length
+    ? prios.slice(0, 3).map(p => `<li><strong>${esc(COMPETENCES[p.code].libelle)}</strong><span>Où revoir : ${esc(COMPETENCES[p.code].cours)}</span></li>`).join('')
+    : `<li class="none"><strong>Aucune priorité : toutes tes compétences sont acquises.</strong><span>Avant le contrôle, relis tout de même « L’essentiel à retenir » (fiche « La facture », point 6).</span></li>`;
+  frTypo($('screenSummary'));
+}
+
+// ============================================================
+// INITIALISATION
+// ============================================================
+auditCompetences();
+frTypo(document.body);
+</script>
+</body>
+</html>
